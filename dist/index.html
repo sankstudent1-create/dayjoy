@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DayJoy — Your whole day, one happy place</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#FF7B7B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -393,6 +396,7 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
   <div id="xlist">
     <label class="xopt"><input type="checkbox" data-x="tasks" checked><span class="xe">✅</span> Tasks</label>
     <label class="xopt"><input type="checkbox" data-x="habits" checked><span class="xe">🔥</span> Habits</label>
+    <label class="xopt"><input type="checkbox" data-x="sched" checked><span class="xe">📅</span> Schedule</label>
     <label class="xopt"><input type="checkbox" data-x="notes" checked><span class="xe">📝</span> Notes</label>
     <label class="xopt"><input type="checkbox" data-x="journal" checked><span class="xe">💛</span> Journal</label>
     <label class="xopt"><input type="checkbox" data-x="sessions" checked><span class="xe">⏱️</span> Focus sessions</label>
@@ -841,7 +845,7 @@ $('x-go').onclick=async()=>{
   try{
     if(xFormat==='json'){
       const data={app:'DayJoy',exportedAt:new Date().toISOString(),user:user.email};
-      sel.forEach(k=>data[k]=D[k==='sessions'?'sessions':k]);
+      sel.forEach(k=>data[k]=D[k]);
       dl('dayjoy-export-'+todayISO()+'.json',new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
     }else await exportPDF(sel);
   }catch(e){alert('Export failed: '+(e.message||e));}
@@ -850,81 +854,121 @@ $('x-go').onclick=async()=>{
 };
 function dl(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
 async function mascotDataURL(){
-  try{const r=await fetch('mascot-sun.webp');const b=await r.blob();
-    return await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b);});
+  try{
+    const r=await fetch('mascot-sun.webp');const b=await r.blob();
+    const bmp=await createImageBitmap(b);
+    const cv=document.createElement('canvas');cv.width=256;cv.height=256;
+    cv.getContext('2d').drawImage(bmp,0,0,256,256);
+    return cv.toDataURL('image/png');
   }catch(e){return null;}
 }
 async function exportPDF(sel){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
-  const W=210,M=16;let y=0;
-  const C={coral:[255,123,123],ink:[30,42,90],soft:[91,100,128],sun:[255,201,60],mint:[53,217,154],sky:[79,168,255],lilac:[167,139,250]};
-  const need=h=>{if(y+h>280){doc.addPage();y=0;}};
-  // cover header
-  doc.setFillColor(...C.coral);doc.roundedRect(0,0,W,52,0,0,'F');
+  const W=210,H=297,M=14;
+  const C={coral:[255,123,123],ink:[30,42,90],soft:[125,135,165],cream:[255,246,234],white:[255,255,255],hair:[233,229,220]};
+  let y=0,page=1;
+  const bg=()=>{doc.setFillColor(...C.cream);doc.rect(0,0,W,H,'F');};
+  const footer=()=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...C.soft);
+    doc.text('Made with love by DayJoy',M,H-10);doc.text(String(page),W-M,H-10,{align:'right'});};
+  const newPage=()=>{footer();doc.addPage();page++;bg();y=M;};
+  const need=hh=>{if(y+hh>H-20)newPage();};
+  bg();
+
+  /* header band */
+  doc.setFillColor(...C.coral);doc.rect(0,0,W,52,'F');
+  doc.setFillColor(255,255,255);
   const mascot=await mascotDataURL();
-  if(mascot){try{doc.addImage(mascot,'WEBP',M,10,32,32);}catch(e){}}
+  if(mascot){try{doc.addImage(mascot,'PNG',M,10,32,32);}catch(e){}}
+  else{doc.circle(M+16,26,16,'F');}
   doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(30);
-  doc.text('DayJoy',mascot?M+38:M,26);
-  doc.setFontSize(12);doc.setFont('helvetica','normal');
-  doc.text('Your whole day, one happy place',mascot?M+38:M,35);
-  doc.setFontSize(10);doc.text(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),mascot?M+38:M,42);
+  doc.text('DayJoy',M+40,27);
+  doc.setFont('helvetica','normal');doc.setFontSize(11);
+  doc.text('Your whole day, one happy place',M+40,35);
+  doc.setFontSize(10);
+  doc.text(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),M+40,42);
   y=60;
-  const bar=(title,color)=>{
-    need(16);doc.setFillColor(...color);doc.roundedRect(M,y,W-2*M,11,3,3,'F');
+
+  /* stat boxes — one uniform design */
+  const doneN=D.tasks.filter(t=>t.done).length;
+  const mins=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
+  const stats=[['Day streak',String(calcStreak())],['Tasks done',doneN+' / '+D.tasks.length],['Focus minutes',String(mins)],['Habits',String(D.habits.length)]];
+  const bw=(W-2*M-9)/4;
+  stats.forEach((s,i)=>{const x=M+i*(bw+3);
+    doc.setFillColor(...C.white);doc.setDrawColor(...C.hair);doc.setLineWidth(.4);
+    doc.roundedRect(x,y,bw,24,3,3,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(...C.coral);
+    doc.text(s[1],x+bw/2,y+11,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...C.soft);
+    doc.text(s[0],x+bw/2,y+18,{align:'center'});});
+  y+=32;
+
+  /* one uniform box design for every section */
+  const x0=M,bw_=W-2*M;
+  function openBox(title,cont){
+    need(20);
+    doc.setFillColor(...C.coral);doc.roundedRect(x0,y,bw_,12,3,3,'F');doc.rect(x0,y+9,bw_,3,'F');
     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
-    doc.text(noEmoji(title),M+5,y+7.5);y+=16;
-  };
-  const lines=(txt,x,w,size=10.5,color=C.ink,bold=false)=>{
-    doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...color);
-    doc.splitTextToSize(noEmoji(txt),w).forEach(l=>{need(6);doc.text(l,x,y);y+=5.2;});
-  };
-  if(sel.includes('tasks')&&D.tasks.length){
-    bar('✅ Tasks',C.coral);
-    D.tasks.forEach(t=>{need(12);
-      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...C.ink);
-      const mark=t.done?'[x]':'[ ]';
-      doc.splitTextToSize(noEmoji(mark+' '+t.title),W-2*M-6).forEach(l=>{need(6);doc.text(l,M+3,y);y+=5.5;});
-      doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...C.soft);
-      const meta=[t.category,t.priority,t.due_date?('due '+t.due_date):null].filter(Boolean).join('  ·  ');
-      if(meta){need(5);doc.text(noEmoji(meta),M+8,y);y+=5;} y+=1.5;});
-    y+=4;
+    doc.text(noEmoji(title)+(cont?'  (cont.)':''),x0+5,y+8.3);
+    y+=12;
   }
-  if(sel.includes('habits')&&D.habits.length){
-    bar('🔥 Habits',C.sun);
-    D.habits.forEach(h=>{need(10);lines(`${noEmoji(h.emoji||'')} ${h.title}  —  ${habitStreak(h)} day streak`,M+3,W-2*M-6,11);y+=2;});
-    y+=4;
+  function closeBox(){
+    doc.setDrawColor(...C.hair);doc.setLineWidth(.4);
+    doc.line(x0,y,x0+bw_,y);y+=8;
   }
-  if(sel.includes('notes')&&D.notes.length){
-    bar('📝 Notes',C.sky);
-    D.notes.forEach(n=>{need(14);
-      doc.setFillColor(245,247,255);const y0=y;
-      lines(n.title||'Untitled',M+5,W-2*M-12,11.5,C.ink,true);
-      lines(n.body||'',M+5,W-2*M-12,10.5);y+=3;
-      doc.roundedRect(M,y0,W-2*M,y-y0+2,2,2);y+=6;});
-    y+=2;
+  function row(r){
+    const tx=x0+(r.check!==undefined?13:6);
+    const tw=bw_-tx+x0-6;
+    const ls=doc.splitTextToSize(noEmoji(r.text),tw);
+    const rh=7+ls.length*5+(r.sub?5.5:0);
+    need(rh+3);
+    doc.setFillColor(...C.white);doc.rect(x0,y,bw_,rh,'F');
+    if(r.check!==undefined){
+      const bx=x0+6,by=y+2;
+      doc.setDrawColor(...C.coral);doc.setLineWidth(.7);doc.rect(bx,by,4.6,4.6);
+      if(r.check){doc.setFillColor(...C.coral);doc.rect(bx,by,4.6,4.6,'F');
+        doc.setDrawColor(255,255,255);doc.setLineWidth(.9);
+        doc.line(bx+1,by+2.6,bx+2,by+3.6);doc.line(bx+2,by+3.6,bx+3.8,by+1.2);}
+    }
+    doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.setTextColor(...C.ink);
+    let yy=y+5.6;
+    ls.forEach(l=>{doc.text(l,tx,yy);yy+=5;});
+    if(r.sub){doc.setFontSize(9);doc.setTextColor(...C.soft);doc.text(noEmoji(r.sub),tx,yy);yy+=5;}
+    doc.setDrawColor(...C.hair);doc.setLineWidth(.25);
+    doc.line(x0+4,y+rh-.6,x0+bw_-4,y+rh-.6);
+    y+=rh;
   }
-  if(sel.includes('journal')&&D.journal.length){
-    bar('💛 Journal',C.lilac);
-    D.journal.forEach(j=>{need(16);
-      doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(...C.soft);
-      doc.text(new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),M+3,y);y+=6;
-      lines(j.text,M+3,W-2*M-6,10.5);y+=4;});
+  function section(title,rows){
+    if(!rows.length)return;
+    openBox(title,false);
+    rows.forEach(r=>{
+      if(y>H-24){closeBox();newPage();openBox(title,true);}
+      row(r);
+    });
+    closeBox();
   }
-  if(sel.includes('sessions')&&D.sessions.length){
-    bar('⏱️ Focus sessions',C.mint);
-    const total=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
-    lines(`Total focused: ${total} minutes across ${D.sessions.length} sessions`,M+3,W-2*M-6,11);y+=3;
-    D.sessions.slice(0,20).forEach(s=>{need(6);
-      doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...C.ink);
-      doc.text(`${s.minutes} min — ${new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}`,M+3,y);y+=5.5;});
+
+  if(sel.includes('tasks'))section('Tasks',D.tasks.map(t=>({
+    text:t.title,check:!!t.done,
+    sub:[t.category,t.priority,t.due_date?('due '+t.due_date):null].filter(Boolean).join('   ·   ')})));
+  if(sel.includes('habits'))section('Habits',D.habits.map(hh=>({
+    text:(hh.emoji||'')+' '+hh.title,sub:habitStreak(hh)+' day streak'})));
+  if(sel.includes('sched'))section('Schedule',D.sched.map(e=>({
+    text:e.title,sub:[e.event_date?fmtDate(e.event_date):null,e.time?e.time.slice(0,5):null].filter(Boolean).join('   ·   ')})));
+  if(sel.includes('notes'))section('Notes',D.notes.map(n=>({
+    text:(n.pinned?'[Pinned] ':'')+(n.title||'Untitled'),sub:(n.body||'').slice(0,140)})));
+  if(sel.includes('journal'))section('Journal',D.journal.map(j=>({
+    text:new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    sub:j.text.slice(0,160)})));
+  if(sel.includes('sessions')){
+    const tot=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
+    section('Focus sessions',D.sessions.slice(0,40).map(s=>({
+      text:s.minutes+' min focus',
+      sub:new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · total '+tot+' min'})));
   }
-  // footer
-  doc.setFontSize(9);doc.setTextColor(...C.soft);
-  doc.text('Made with love by DayJoy',M,292);
+  footer();
   doc.save('dayjoy-export-'+todayISO()+'.pdf');
 }
-
 /* ---------- init ---------- */
 renderAuthMode();newPrompt();boot();
 </script>

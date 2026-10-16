@@ -7,7 +7,7 @@ html = html.split('__SUPABASE_URL__').join(process.env.SUPABASE_URL || '__SUPABA
 html = html.split('__SUPABASE_ANON_KEY__').join(process.env.SUPABASE_ANON_KEY || '__SUPABASE_ANON_KEY__');
 fs.mkdirSync('dist', { recursive: true });
 fs.writeFileSync(path.join('dist', 'index.html'), html);
-for (const img of ['mascot-sun.webp', 'mascot-clock.webp']) {
+for (const img of ['mascot-sun.webp', 'mascot-clock.webp', 'favicon.png', 'favicon.ico', 'apple-touch-icon.png']) {
   if (fs.existsSync(img)) fs.copyFileSync(img, path.join('dist', img));
 }
 console.log('Built dist/ with',
