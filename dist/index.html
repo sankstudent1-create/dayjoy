@@ -230,6 +230,28 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
 .xfmt.on{border-color:var(--coral);background:var(--coral-soft);transform:scale(1.03)}
 /* color-psychology section accents */
 .section-head .ico{background:var(--sc,#eee);border-radius:14px;padding:4px 9px}
+/* faint check -> dark check */
+.cb::before,.dotbtn::before{content:'✓';color:rgba(30,42,90,.14);font-size:19px;font-weight:800;line-height:1}
+.cb.done::before,.dotbtn.hit::before{display:none}
+.cb.done,.dotbtn.hit{color:var(--ink)}
+/* settings */
+.avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--peach));color:#fff;font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);flex-shrink:0}
+.setgrid{display:flex;flex-wrap:wrap;gap:10px}
+.setgrid .stat{flex:1 1 28%}
+/* themes */
+body[data-theme="white"]{--bg:#FFFFFF}
+body[data-theme="midnight"]{--bg:#1F2548;--ink:#FFF6EA;--ink-soft:#A7AED4;--card:#2D3560;--shadow:0 6px 0 rgba(0,0,0,.28)}
+body[data-theme="midnight"] #scr-auth{background:linear-gradient(180deg,#2A3054,#232A52 60%,#1F2548)}
+body[data-theme="midnight"] .auth-sheet,body[data-theme="midnight"] .sheet,body[data-theme="midnight"] .navbar,body[data-theme="midnight"] .searchbar,body[data-theme="midnight"] .datenav{background:#2D3560}
+body[data-theme="midnight"] .seg{background:#232A52}
+body[data-theme="midnight"] input,body[data-theme="midnight"] textarea,body[data-theme="midnight"] select{background:#232A52!important;color:#FFF6EA!important;border-color:#8B93C4!important}
+body[data-theme="midnight"] .ghostbtn,body[data-theme="midnight"] .fchip,body[data-theme="midnight"] .tpre,body[data-theme="midnight"] .xfmt{background:#2D3560;color:#FFF6EA;border-color:#8B93C4}
+body[data-theme="midnight"] .searchbar input{background:none!important;border:none!important}
+body[data-theme="midnight"] .datenav button{background:#232A52;color:#FFF6EA}
+body[data-theme="midnight"] .mode-seg{background:rgba(0,0,0,.3)}
+body[data-theme="midnight"] .note-card p,body[data-theme="midnight"] .note-full p,body[data-theme="midnight"] .journal-card p,body[data-theme="midnight"] .j-entry p{color:#C9CFEC}
+body[data-theme="midnight"] .j-entry{background:#2D3560}
+body[data-theme="midnight"] .xfmt.on{border-color:var(--coral);background:#4A2E35}
 /* modal */
 .modal{position:fixed;inset:0;background:rgba(30,42,90,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 .modal.open{display:flex}
@@ -303,7 +325,7 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
     </div>
     <div class="topbtns">
       <button class="ghostbtn" id="btn-export">📤 Export</button>
-      <button class="ghostbtn" id="btn-out">Sign out</button>
+      <button class="ghostbtn" id="btn-settings">⚙️ Settings</button>
     </div>
 
     <div class="view active" id="v-home">
@@ -406,6 +428,28 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
   <textarea id="jedit-text" style="min-height:140px"></textarea>
   <div class="row"><button class="bigbtn" id="jedit-save">Save 💾</button></div>
   <div class="row" style="margin-top:10px"><button class="ghostbtn" id="jedit-close" style="flex:1">Close</button></div>
+</div></div>
+
+<div class="modal" id="settings-modal"><div class="sheet">
+  <div class="xhead"><div class="avatar" id="set-avatar">D</div><div><h3 id="set-email">…</h3><p id="set-since">…</p></div></div>
+  <div class="xlabel">Your stats</div>
+  <div class="setgrid" id="set-stats"></div>
+  <div class="xlabel">Appearance</div>
+  <div class="xformats" id="theme-pick">
+    <button class="xfmt" data-theme="cream"><span class="xe">🍦</span><b>Cream</b><small>Cozy & warm</small></button>
+    <button class="xfmt" data-theme="white"><span class="xe">⬜</span><b>White</b><small>Clean & bright</small></button>
+    <button class="xfmt" data-theme="midnight"><span class="xe">🌙</span><b>Midnight</b><small>Calm & dark</small></button>
+  </div>
+  <div class="xlabel">Sounds</div>
+  <label class="xcard" style="--xc:#A78BFA"><input type="checkbox" id="snd-tgl" checked><span class="xe">🔔</span><span class="xt">Playful sounds<small>Pops & chimes around the app</small></span><span class="xcheck">✓</span></label>
+  <div class="xlabel">PDF theme</div>
+  <div class="xformats" id="pdftheme-pick">
+    <button class="xfmt" data-ptheme="cream"><span class="xe">🍦</span><b>Cream</b><small>Warm paper</small></button>
+    <button class="xfmt" data-ptheme="white"><span class="xe">⬜</span><b>White</b><small>Crisp & clean</small></button>
+    <button class="xfmt" data-ptheme="midnight"><span class="xe">🌙</span><b>Midnight</b><small>Bold & dark</small></button>
+  </div>
+  <div class="row" style="margin-top:14px"><button class="bigbtn" id="set-export">📤 Open Export Studio</button></div>
+  <div class="row" style="margin-top:10px"><button class="ghostbtn" id="set-out" style="flex:1">Sign out</button><button class="ghostbtn" id="set-close" style="flex:1">Close</button></div>
 </div></div>
 
 <div class="modal" id="export-modal"><div class="sheet">
@@ -558,7 +602,53 @@ async function doAuth(){
 }
 $('auth-go').onclick=doAuth;
 $('auth-pass').onkeydown=e=>{if(e.key==='Enter')doAuth();};
-$('btn-out').onclick=async()=>{await sb.auth.signOut();user=null;D={tasks:[],notes:[],sched:[],journal:[],sessions:[],habits:[],habitLogs:[]};show('scr-auth');renderAuthMode();};
+/* ---------- settings ---------- */
+let soundOn=localStorage.getItem('dayjoy-sound')!=='off';
+function beep(freq,dur,vol,when){
+  if(!soundOn)return;
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    beep.ctx=beep.ctx||new Ctx();
+    const ctx=beep.ctx,o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.value=freq;
+    const t=ctx.currentTime+(when||0);
+    g.gain.setValueAtTime(vol||.1,t);
+    g.gain.exponentialRampToValueAtTime(.0008,t+dur);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+dur+.02);
+  }catch(e){}
+}
+const sndPop=()=>{beep(540,.1,.1,0);beep(810,.13,.09,.06);};
+const sndChime=()=>{beep(660,.14,.11,0);beep(880,.22,.1,.1);};
+function applyTheme(){
+  const t=localStorage.getItem('dayjoy-theme')||'cream';
+  if(t==='cream')document.body.removeAttribute('data-theme');else document.body.dataset.theme=t;
+  document.querySelectorAll('#theme-pick .xfmt').forEach(b=>b.classList.toggle('on',b.dataset.theme===t));
+}
+function applyPTheme(){
+  const t=localStorage.getItem('dayjoy-pdf-theme')||'cream';
+  document.querySelectorAll('#pdftheme-pick .xfmt').forEach(b=>b.classList.toggle('on',b.dataset.ptheme===t));
+}
+function openSettings(){
+  const em=user?.email||'friend';
+  $('set-avatar').textContent=em[0].toUpperCase();
+  $('set-email').textContent=em;
+  try{$('set-since').textContent='Member since '+new Date(user.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'});}catch(e){$('set-since').textContent='DayJoy member';}
+  const mins=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
+  const doneN=D.tasks.filter(t=>t.done).length;
+  const stats=[[calcStreak()+'','day streak'],[doneN+'/'+D.tasks.length,'tasks done'],[mins+'m','focused'],[D.habits.length,'habits'],[D.journal.length,'journal'],[D.notes.length,'notes']];
+  $('set-stats').innerHTML=stats.map(s=>`<div class="stat"><div class="v">${s[0]}</div><div class="l">${s[1]}</div></div>`).join('');
+  $('snd-tgl').checked=soundOn;
+  applyTheme();applyPTheme();
+  $('settings-modal').classList.add('open');
+}
+$('btn-settings').onclick=openSettings;
+$('set-close').onclick=()=>$('settings-modal').classList.remove('open');
+$('settings-modal').onclick=e=>{if(e.target.id==='settings-modal')$('settings-modal').classList.remove('open');};
+$('set-export').onclick=()=>{$('settings-modal').classList.remove('open');$('export-modal').classList.add('open');};
+$('set-out').onclick=async()=>{await sb.auth.signOut();user=null;D={tasks:[],notes:[],sched:[],journal:[],sessions:[],habits:[],habitLogs:[]};$('settings-modal').classList.remove('open');show('scr-auth');renderAuthMode();};
+document.querySelectorAll('#theme-pick .xfmt').forEach(b=>b.onclick=()=>{localStorage.setItem('dayjoy-theme',b.dataset.theme);applyTheme();sndPop();});
+document.querySelectorAll('#pdftheme-pick .xfmt').forEach(b=>b.onclick=()=>{localStorage.setItem('dayjoy-pdf-theme',b.dataset.ptheme);applyPTheme();sndPop();});
+$('snd-tgl').onchange=e=>{soundOn=e.target.checked;localStorage.setItem('dayjoy-sound',soundOn?'on':'off');if(soundOn)sndPop();};
 
 /* ---------- shell ---------- */
 function head(){
@@ -594,8 +684,9 @@ async function loadAll(){
 }
 const emptyHTML=msg=>`<div class="empty"><img class="emascot" src="mascot-sun.png" alt=""><br>${msg}</div>`;
 
-/* confetti burst on check */
+/* confetti burst + pop sound on check */
 function burst(btn){
+  sndPop();
   const colors=['#FF7B7B','#FFC93C','#35D99A','#4FA8FF','#A78BFA'];
   for(let i=0;i<7;i++){
     const s=document.createElement('span');s.className='burst';
@@ -832,9 +923,10 @@ async function tick(){
     if(T.mode==='focus'){
       await sb.from('dayjoy_sessions').insert({user_id:user.id,minutes:Math.round(T.dur/60)});
       if(navigator.vibrate)navigator.vibrate(200);
+      sndChime();
       alert('🎉 Focus session complete! Take a break, you earned it.');
       loadAll();
-    }else alert('☕ Break over! Ready for another round?');
+    }else{beep(520,.15,.1,0);alert('☕ Break over! Ready for another round?');}
     T.left=T.dur;drawT();
   }
 }
@@ -902,10 +994,51 @@ async function exportPDF(sel){
   const C={coral:[255,123,123],ink:[30,42,90],soft:[91,100,128],cream:[255,246,234],white:[255,255,255],hair:[233,229,220],
     mint:[79,209,165],sky:[79,168,255],sun:[255,201,60],lilac:[167,139,250],peach:[255,159,107],sunsft:[255,243,209]};
   const BGC={'bg-coral':C.coral,'bg-mint':C.mint,'bg-sky':C.sky,'bg-sun':C.sun,'bg-lilac':C.lilac,'bg-peach':C.peach};
+  const PDFTHEMES={cream:{bg:[255,246,234],card:[255,255,255],ink:[30,42,90],soft:[91,100,128],hair:[233,229,220]},
+   white:{bg:[255,255,255],card:[246,247,250],ink:[30,42,90],soft:[105,112,135],hair:[224,227,234]},
+   midnight:{bg:[31,37,72],card:[45,53,96],ink:[255,246,234],soft:[170,177,215],hair:[62,70,118]}};
+  const PT=PDFTHEMES[localStorage.getItem('dayjoy-pdf-theme')]||PDFTHEMES.cream;
+  /* vector icons — no emoji font needed */
+  function drawIcon(kind,x,y,s,col){
+    doc.setDrawColor(...col);doc.setFillColor(...col);
+    doc.setLineWidth(Math.max(.35,s*.1));doc.setLineCap('round');doc.setLineJoin('round');
+    if(kind==='check'){
+      doc.line(x+s*.22,y+s*.55,x+s*.42,y+s*.74);
+      doc.line(x+s*.42,y+s*.74,x+s*.8,y+s*.26);
+    }else if(kind==='flame'){
+      const k=s/10, ox=x+5*k, oy=y+.6*k;
+      doc.lines([
+        [1.6*k,2*k, 3*k,3.6*k, 3*k,5.8*k],
+        [0,2.2*k, -1.4*k,3.4*k, -3*k,3.4*k],
+        [-1.6*k,0, -3*k,-1.2*k, -3*k,-3.4*k],
+        [0,-2.2*k, 1.4*k,-3.8*k, 3*k,-5.8*k]
+      ],ox,oy,[1,1],'F',true);
+    }else if(kind==='cal'){
+      doc.roundedRect(x+s*.12,y+s*.2,s*.76,s*.68,s*.1,s*.1,'D');
+      doc.line(x+s*.12,y+s*.4,x+s*.88,y+s*.4);
+      doc.line(x+s*.32,y+s*.08,x+s*.32,y+s*.3);
+      doc.line(x+s*.68,y+s*.08,x+s*.68,y+s*.3);
+    }else if(kind==='note'){
+      doc.roundedRect(x+s*.2,y+s*.08,s*.6,s*.84,s*.08,s*.08,'D');
+      doc.line(x+s*.32,y+s*.34,x+s*.68,y+s*.34);
+      doc.line(x+s*.32,y+s*.5,x+s*.68,y+s*.5);
+      doc.line(x+s*.32,y+s*.66,x+s*.56,y+s*.66);
+    }else if(kind==='heart'){
+      const r=s*.2;
+      doc.circle(x+s*.32,y+s*.34,r,'F');
+      doc.circle(x+s*.68,y+s*.34,r,'F');
+      doc.lines([[s*.72,0],[-s*.36,s*.48]],x+s*.14,y+s*.42,[1,1],'F',true);
+    }else if(kind==='clock'){
+      doc.circle(x+s/2,y+s/2,s*.38,'D');
+      doc.line(x+s/2,y+s/2,x+s/2,y+s*.26);
+      doc.line(x+s/2,y+s/2,x+s*.66,y+s*.6);
+    }
+    doc.setLineCap('butt');doc.setLineJoin('miter');
+  }
   let y=0,page=1;
   const F=(style,size)=>{doc.setFont(PDFFONT,style);doc.setFontSize(size);};
-  const bg=()=>{doc.setFillColor(...C.cream);doc.rect(0,0,W,H,'F');};
-  const footer=()=>{F('normal',9);doc.setTextColor(...C.soft);
+  const bg=()=>{doc.setFillColor(...PT.bg);doc.rect(0,0,W,H,'F');};
+  const footer=()=>{F('normal',9);doc.setTextColor(...PT.soft);
     doc.text('Made with love by DayJoy',M,H-10);doc.text(String(page),W-M,H-10,{align:'right'});};
   const newPage=()=>{footer();doc.addPage();page++;bg();y=M;};
   const need=hh=>{if(y+hh>H-20)newPage();};
@@ -914,7 +1047,7 @@ async function exportPDF(sel){
   const mascot=await mascotDataURL();
   if(mascot){try{doc.addImage(mascot,'PNG',W-M-32,10,32,32);}catch(e){}}
   F('bold',32);doc.setTextColor(...C.coral);doc.text('DayJoy',M,28);
-  F('normal',11);doc.setTextColor(...C.soft);doc.text('Your whole day, one happy place',M,36);
+  F('normal',11);doc.setTextColor(...PT.soft);doc.text('Your whole day, one happy place',M,36);
   F('normal',10);doc.text(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),M,43);
   y=54;
   /* stat boxes — value in each tool's emotional color */
@@ -924,18 +1057,19 @@ async function exportPDF(sel){
   const stats=[['Day streak',String(calcStreak()),GOLD],['Tasks done',doneN+' / '+D.tasks.length,C.coral],['Focus minutes',String(mins),MINTD],['Habits',String(D.habits.length),GOLD]];
   const bw=(W-2*M-9)/4;
   stats.forEach((s,i)=>{const x=M+i*(bw+3);
-    doc.setFillColor(...C.white);doc.setDrawColor(...C.hair);doc.setLineWidth(.4);
+    doc.setFillColor(...PT.card);doc.setDrawColor(...PT.hair);doc.setLineWidth(.4);
     doc.roundedRect(x,y,bw,24,3,3,'FD');
     F('bold',16);doc.setTextColor(...s[2]);
     doc.text(s[1],x+bw/2,y+11,{align:'center'});
-    F('normal',9);doc.setTextColor(...C.soft);
+    F('normal',9);doc.setTextColor(...PT.soft);
     doc.text(s[0],x+bw/2,y+18,{align:'center'});});
   y+=32;
   /* section head, like the site */
-  function shead(color,title){
+  function shead(color,title,icon){
     need(14);
     doc.setFillColor(...color);doc.roundedRect(M,y+1,8,8,2.5,2.5,'F');
-    F('bold',15);doc.setTextColor(...C.ink);doc.text(noEmoji(title),M+12,y+8);
+    if(icon)drawIcon(icon,M+1.6,y+2.6,4.8,[255,255,255]);
+    F('bold',15);doc.setTextColor(...PT.ink);doc.text(noEmoji(title),M+12,y+8);
     y+=14;
   }
   /* task row, like the site's colorful task cards */
@@ -948,9 +1082,9 @@ async function exportPDF(sel){
     need(rh+4);
     doc.setFillColor(...c);doc.roundedRect(M,y,W-2*M,rh,4,4,'F');
     doc.setFillColor(255,255,255);doc.circle(M+8.5,y+8.5,4.6,'F');
-    if(t.done){F('bold',12);doc.setTextColor(...C.ink);doc.text('\u2713',M+8.5,y+10,{align:'center'});}
+    if(t.done){drawIcon('check',M+5.4,y+5.4,6.2,PT.ink);}
     let yy=y+7.6;
-    F('bold',11);doc.setTextColor(...(onSun?C.ink:C.white));
+    F('bold',11);doc.setTextColor(...(onSun?PT.ink:PT.card));
     ls.forEach(l=>{doc.text(l,tx,yy);yy+=5.6;});
     F('normal',8.5);
     const meta=[t.category,t.priority,t.due_date?('due '+t.due_date):null].filter(Boolean).join('   \u00b7   ');
@@ -962,9 +1096,10 @@ async function exportPDF(sel){
     const logs=new Set(D.habitLogs.filter(l=>l.habit_id===hh.id).map(l=>l.log_date));
     const st=habitStreak(hh);
     need(26);
-    doc.setFillColor(...C.white);doc.roundedRect(M,y,W-2*M,22,4,4,'F');
-    F('bold',12);doc.setTextColor(...C.ink);
-    doc.text(noEmoji(hh.title),M+6,y+8.6);
+    doc.setFillColor(...PT.card);doc.roundedRect(M,y,W-2*M,22,4,4,'F');
+    drawIcon('flame',M+6,y+4.4,4.6,C.coral);
+    F('bold',12);doc.setTextColor(...PT.ink);
+    doc.text(noEmoji(hh.title),M+13,y+8.6);
     const pill='Day streak: '+st;
     F('bold',9);
     const pw=doc.getTextWidth(pill)+8;
@@ -974,7 +1109,7 @@ async function exportPDF(sel){
     last7().forEach(d=>{
       const hit=logs.has(dayISO(d));
       if(hit){doc.setFillColor(...C.mint);doc.circle(dx+dw/2,y+17,3,'F');}
-      else{doc.setDrawColor(...C.hair);doc.setLineWidth(.5);doc.circle(dx+dw/2,y+17,3);}
+      else{doc.setDrawColor(...PT.hair);doc.setLineWidth(.5);doc.circle(dx+dw/2,y+17,3);}
       dx+=dw;
     });
     y+=26;
@@ -1006,7 +1141,7 @@ async function exportPDF(sel){
         const nx=M+ci*(cw+gap);
         doc.setFillColor(...bgc[(n.color||0)%6]);doc.roundedRect(nx,y,cw,rh,3,3,'F');
         let yy=y+6;
-        F('bold',10.5);doc.setTextColor(...C.ink);
+        F('bold',10.5);doc.setTextColor(...PT.ink);
         doc.splitTextToSize(noEmoji((n.pinned?'Pinned \u00b7 ':'')+(n.title||'Untitled')),cw-8).forEach(l=>{doc.text(l,nx+4,yy);yy+=5;});
         F('normal',9);doc.setTextColor(60,70,112);
         doc.splitTextToSize(noEmoji((n.body||'').slice(0,110)),cw-8).slice(0,3).forEach(l=>{doc.text(l,nx+4,yy);yy+=4.4;});
@@ -1021,39 +1156,39 @@ async function exportPDF(sel){
     const ls=doc.splitTextToSize(noEmoji(j.text),W-2*M-12);
     const rh=17+ls.length*5;
     need(rh+4);
-    doc.setFillColor(...C.white);doc.roundedRect(M,y,W-2*M,rh,4,4,'F');
-    F('bold',9.5);doc.setTextColor(...C.soft);
+    doc.setFillColor(...PT.card);doc.roundedRect(M,y,W-2*M,rh,4,4,'F');
+    F('bold',9.5);doc.setTextColor(...PT.soft);
     doc.text(new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),M+6,y+7);
     const mw=MOODW[j.mood]||'';
     if(mw){F('bold',9);const pw=doc.getTextWidth(mw)+10;
       doc.setFillColor(...C.sunsft);doc.roundedRect(M+W-2*M-6-pw,y+3.5,pw,7,3.5,3.5,'F');
-      doc.setTextColor(...C.ink);doc.text(mw,M+W-2*M-6-pw/2,y+8.4,{align:'center'});}
-    let yy=y+13.5;F('normal',10);doc.setTextColor(...C.ink);
+      doc.setTextColor(...PT.ink);doc.text(mw,M+W-2*M-6-pw/2,y+8.4,{align:'center'});}
+    let yy=y+13.5;F('normal',10);doc.setTextColor(...PT.ink);
     ls.forEach(l=>{doc.text(l,M+6,yy);yy+=5;});
     y+=rh+4;
   }
   /* focus session row, like the site */
   function sessRow(s){
     need(14);
-    doc.setFillColor(...C.white);doc.roundedRect(M,y,W-2*M,11,3,3,'F');
+    doc.setFillColor(...PT.card);doc.roundedRect(M,y,W-2*M,11,3,3,'F');
     doc.setFillColor(...C.mint);doc.roundedRect(M,y,3.2,11,1.6,1.6,'F');
-    F('bold',10.5);doc.setTextColor(...C.ink);
+    F('bold',10.5);doc.setTextColor(...PT.ink);
     doc.text(s.minutes+' min focus',M+8,y+7.4);
-    F('normal',9);doc.setTextColor(...C.soft);
+    F('normal',9);doc.setTextColor(...PT.soft);
     doc.text(new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),W-M-6,y+7.4,{align:'right'});
     y+=15;
   }
-  if(sel.includes('tasks')&&D.tasks.length){shead(C.coral,'Tasks');D.tasks.forEach(taskRow);y+=5;}
-  if(sel.includes('habits')&&D.habits.length){shead(C.sun,'Habits');D.habits.forEach(habitRow);y+=5;}
-  if(sel.includes('sched')&&D.sched.length){shead(C.sky,'Schedule');D.sched.forEach(schedRow);y+=5;}
-  if(sel.includes('notes')&&D.notes.length){shead(C.lilac,'Notes');notesGrid(D.notes);}
-  if(sel.includes('journal')&&D.journal.length){shead(C.peach,'Journal');D.journal.forEach(journalRow);y+=5;}
-  if(sel.includes('sessions')&&D.sessions.length){shead(C.mint,'Focus sessions');D.sessions.slice(0,40).forEach(sessRow);y+=5;}
+  if(sel.includes('tasks')&&D.tasks.length){shead(C.coral,'Tasks','check');D.tasks.forEach(taskRow);y+=5;}
+  if(sel.includes('habits')&&D.habits.length){shead(C.sun,'Habits','flame');D.habits.forEach(habitRow);y+=5;}
+  if(sel.includes('sched')&&D.sched.length){shead(C.sky,'Schedule','cal');D.sched.forEach(schedRow);y+=5;}
+  if(sel.includes('notes')&&D.notes.length){shead(C.lilac,'Notes','note');notesGrid(D.notes);}
+  if(sel.includes('journal')&&D.journal.length){shead(C.peach,'Journal','heart');D.journal.forEach(journalRow);y+=5;}
+  if(sel.includes('sessions')&&D.sessions.length){shead(C.mint,'Focus sessions','clock');D.sessions.slice(0,40).forEach(sessRow);y+=5;}
   footer();
   doc.save('dayjoy-export-'+todayISO()+'.pdf');
 }
 /* ---------- init ---------- */
-renderAuthMode();newPrompt();
+renderAuthMode();newPrompt();applyTheme();
 /* color psychology: every tool gets its emotional color, on site and in PDF.
    Tasks=coral (energy/action) · Habits=gold (reward/optimism) · Schedule=sky (trust/clarity)
    Notes=lilac (creativity) · Journal=peach (warmth/comfort) · Focus=mint (calm/growth) */
