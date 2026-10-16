@@ -284,8 +284,6 @@ body[data-theme="midnight"] .setbanner{background:linear-gradient(135deg,#4A2E35
 /* focus v2 */
 .speech{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:7px 16px;font-weight:800;font-size:14px;display:inline-block;margin:2px 0 8px;box-shadow:var(--shadow)}
 .toast{background:var(--ink);color:#fff;border-radius:16px;padding:10px 18px;font-weight:800;position:absolute;top:12px;left:50%;transform:translateX(-50%);display:none;z-index:5;box-shadow:var(--shadow);white-space:nowrap;font-size:14px}
-.customrow{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:10px;font-weight:800;font-size:13.5px;color:var(--ink-soft)}
-.customrow input{width:70px;border:3px solid var(--ink);border-radius:14px;padding:8px 6px;font-family:inherit;font-weight:800;font-size:14px;text-align:center;background:#fff;color:var(--ink);outline:none}
 .tomdots{display:flex;gap:7px;justify-content:center;margin:12px 0 2px;min-height:14px}
 .tomdot{width:14px;height:14px;border-radius:50%;background:rgba(30,42,90,.12)}
 .tomdot.on{background:var(--coral);box-shadow:0 0 0 3px var(--coral-soft)}
@@ -447,7 +445,6 @@ body[data-theme="midnight"] .tomdot{background:rgba(255,255,255,.14)}
           <div class="ringtxt" style="pointer-events:none"><div class="t" id="t-time" style="font-size:44px">25:00</div><div class="s" id="t-state">Paused</div></div></div>
           <p style="text-align:center;font-weight:700;font-size:12.5px;color:var(--ink-soft);margin-top:2px">💡 Drag the ring to set minutes</p>
           <div class="timer-presets"><button class="tpre" data-min="15">15m</button><button class="tpre on" data-min="25">25m</button><button class="tpre" data-min="50">50m</button></div>
-          <div class="customrow"><span>Custom</span><input id="t-custom" type="number" min="1" max="180" placeholder="min"><button class="ghostbtn" id="t-cset" style="padding:8px 16px;font-size:13px">Set</button></div>
           <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="bigbtn" id="t-toggle" style="width:auto">▶ Start</button><button class="ghostbtn" id="t-reset">Reset</button></div>
           <div class="tomdots" id="tom-dots"></div>
           <label class="autorow"><span class="switch"><input type="checkbox" id="auto-break"><span class="sl"></span></span>Auto-start breaks</label>
@@ -957,8 +954,7 @@ $('jedit-save').onclick=async()=>{
 };
 
 /* ---------- timer v2 ---------- */
-let T={dur:25*60,left:25*60,run:false,iv:null,mode:'focus',endAt:0};
-const BREAKS={short:5*60,long:15*60};
+let T={dur:25*60,left:25*60,run:false,iv:null,mode:'focus',endAt:0,lens:{focus:25*60,short:5*60,long:15*60}};
 const CIRC=2*Math.PI*80;
 const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 const focusGoal=()=>+(localStorage.getItem('dayjoy-focus-goal')||120);
@@ -986,21 +982,19 @@ function notify(title,body){
 function setMode(m){
   T.mode=m;pauseTimer();
   ['focus','short','long'].forEach(x=>$('mode-'+x).classList.toggle('on',x===m));
-  T.dur=T.left=(m==='focus')?+document.querySelector('.tpre.on').dataset.min*60:BREAKS[m];
+  T.dur=T.left=T.lens[m];
   say(m==='focus'?'focus':m);drawT();
 }
 $('mode-focus').onclick=()=>setMode('focus');
 $('mode-short').onclick=()=>setMode('short');
 $('mode-long').onclick=()=>setMode('long');
-document.querySelectorAll('.tpre').forEach(p=>p.onclick=()=>{document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));p.classList.add('on');
-  if(T.mode==='focus'&&!T.run){T.dur=T.left=+p.dataset.min*60;drawT();}});
-function setCustom(){const v=+$('t-custom').value;
-  if(v>=1&&v<=180){document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));
-    if(T.mode!=='focus')setMode('focus');else pauseTimer();
-    T.dur=T.left=v*60;drawT();say('focus');sndPop();}
-  else toast('Enter 1\u2013180 minutes');}
-$('t-cset').onclick=setCustom;
-$('t-custom').onkeydown=e=>{if(e.key==='Enter')setCustom();};
+document.querySelectorAll('.tpre').forEach(p=>p.onclick=()=>{
+  if(T.run){toast('Pause first to change time \u23F8');return;}
+  document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));p.classList.add('on');
+  T.lens[T.mode]=+p.dataset.min*60;
+  T.dur=T.left=T.lens[T.mode];
+  drawT();say(T.mode==='focus'?'focus':T.mode);sndPop();
+});
 /* round slider: drag the ring to set minutes */
 const tsvg=$('t-svg');
 let dragging=false;
@@ -1014,7 +1008,7 @@ function ringMinutes(e){
 function ringSet(e){
   const m=ringMinutes(e);
   document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));
-  T.dur=T.left=m*60;drawT();
+  T.lens[T.mode]=T.dur=T.left=m*60;drawT();
   const r=tsvg.getBoundingClientRect();
   const a=Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2));
   const knob=$('t-knob');
