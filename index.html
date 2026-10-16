@@ -407,6 +407,7 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
 </div></div>
 
 <script>
+/*__BALOO_FONTS__*/
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const PALETTE=['bg-coral','bg-mint','bg-sky','bg-sun','bg-lilac','bg-peach'];
@@ -862,110 +863,155 @@ async function mascotDataURL(){
     return cv.toDataURL('image/png');
   }catch(e){return null;}
 }
+const MOODW={'😍':'Loved it','😊':'Happy','🙂':'Okay','😟':'Worried','😴':'Sleepy'};
 async function exportPDF(sel){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
+  let PDFFONT='helvetica';
+  try{
+    if(typeof BALOO_R!=='undefined'&&BALOO_R&&typeof BALOO_B!=='undefined'&&BALOO_B){
+      doc.addFileToVFS('baloo-r.ttf',BALOO_R);doc.addFileToVFS('baloo-b.ttf',BALOO_B);
+      doc.addFont('baloo-r.ttf','baloo','normal');doc.addFont('baloo-b.ttf','baloo','bold');
+      PDFFONT='baloo';
+    }
+  }catch(e){}
   const W=210,H=297,M=14;
-  const C={coral:[255,123,123],ink:[30,42,90],soft:[125,135,165],cream:[255,246,234],white:[255,255,255],hair:[233,229,220]};
+  const C={coral:[255,123,123],ink:[30,42,90],soft:[91,100,128],cream:[255,246,234],white:[255,255,255],hair:[233,229,220],
+    mint:[79,209,165],sky:[79,168,255],sun:[255,201,60],lilac:[167,139,250],peach:[255,159,107],sunsft:[255,243,209]};
+  const BGC={'bg-coral':C.coral,'bg-mint':C.mint,'bg-sky':C.sky,'bg-sun':C.sun,'bg-lilac':C.lilac,'bg-peach':C.peach};
   let y=0,page=1;
+  const F=(style,size)=>{doc.setFont(PDFFONT,style);doc.setFontSize(size);};
   const bg=()=>{doc.setFillColor(...C.cream);doc.rect(0,0,W,H,'F');};
-  const footer=()=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...C.soft);
+  const footer=()=>{F('normal',9);doc.setTextColor(...C.soft);
     doc.text('Made with love by DayJoy',M,H-10);doc.text(String(page),W-M,H-10,{align:'right'});};
   const newPage=()=>{footer();doc.addPage();page++;bg();y=M;};
   const need=hh=>{if(y+hh>H-20)newPage();};
   bg();
-
-  /* header band */
-  doc.setFillColor(...C.coral);doc.rect(0,0,W,52,'F');
-  doc.setFillColor(255,255,255);
+  /* header, like the app */
   const mascot=await mascotDataURL();
-  if(mascot){try{doc.addImage(mascot,'PNG',M,10,32,32);}catch(e){}}
-  else{doc.circle(M+16,26,16,'F');}
-  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(30);
-  doc.text('DayJoy',M+40,27);
-  doc.setFont('helvetica','normal');doc.setFontSize(11);
-  doc.text('Your whole day, one happy place',M+40,35);
-  doc.setFontSize(10);
-  doc.text(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),M+40,42);
-  y=60;
-
-  /* stat boxes — one uniform design */
-  const doneN=D.tasks.filter(t=>t.done).length;
-  const mins=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
-  const stats=[['Day streak',String(calcStreak())],['Tasks done',doneN+' / '+D.tasks.length],['Focus minutes',String(mins)],['Habits',String(D.habits.length)]];
-  const bw=(W-2*M-9)/4;
-  stats.forEach((s,i)=>{const x=M+i*(bw+3);
-    doc.setFillColor(...C.white);doc.setDrawColor(...C.hair);doc.setLineWidth(.4);
-    doc.roundedRect(x,y,bw,24,3,3,'FD');
-    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(...C.coral);
-    doc.text(s[1],x+bw/2,y+11,{align:'center'});
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...C.soft);
-    doc.text(s[0],x+bw/2,y+18,{align:'center'});});
-  y+=32;
-
-  /* one uniform box design for every section */
-  const x0=M,bw_=W-2*M;
-  function openBox(title,cont){
-    need(20);
-    doc.setFillColor(...C.coral);doc.roundedRect(x0,y,bw_,12,3,3,'F');doc.rect(x0,y+9,bw_,3,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
-    doc.text(noEmoji(title)+(cont?'  (cont.)':''),x0+5,y+8.3);
-    y+=12;
+  if(mascot){try{doc.addImage(mascot,'PNG',W-M-32,10,32,32);}catch(e){}}
+  F('bold',32);doc.setTextColor(...C.coral);doc.text('DayJoy',M,28);
+  F('normal',11);doc.setTextColor(...C.soft);doc.text('Your whole day, one happy place',M,36);
+  F('normal',10);doc.text(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),M,43);
+  y=54;
+  /* section head, like the site */
+  function shead(color,title){
+    need(14);
+    doc.setFillColor(...color);doc.roundedRect(M,y+1,8,8,2.5,2.5,'F');
+    F('bold',15);doc.setTextColor(...C.ink);doc.text(noEmoji(title),M+12,y+8);
+    y+=14;
   }
-  function closeBox(){
-    doc.setDrawColor(...C.hair);doc.setLineWidth(.4);
-    doc.line(x0,y,x0+bw_,y);y+=8;
+  /* task row, like the site's colorful task cards */
+  function taskRow(t){
+    const c=BGC[t.color]||C.coral, onSun=(c===C.sun);
+    const tx=M+17, tw=W-2*M-24;
+    F('bold',11);
+    const ls=doc.splitTextToSize(noEmoji(t.title),tw);
+    const rh=9+ls.length*5.6+5.4;
+    need(rh+4);
+    doc.setFillColor(...c);doc.roundedRect(M,y,W-2*M,rh,4,4,'F');
+    doc.setFillColor(255,255,255);doc.circle(M+8.5,y+8.5,4.6,'F');
+    if(t.done){F('bold',12);doc.setTextColor(...C.ink);doc.text('\u2713',M+8.5,y+10,{align:'center'});}
+    let yy=y+7.6;
+    F('bold',11);doc.setTextColor(...(onSun?C.ink:C.white));
+    ls.forEach(l=>{doc.text(l,tx,yy);yy+=5.6;});
+    F('normal',8.5);
+    const meta=[t.category,t.priority,t.due_date?('due '+t.due_date):null].filter(Boolean).join('   \u00b7   ');
+    doc.text(noEmoji(meta),tx,yy+.6);
+    y+=rh+4;
   }
-  function row(r){
-    const tx=x0+(r.check!==undefined?13:6);
-    const tw=bw_-tx+x0-6;
-    const ls=doc.splitTextToSize(noEmoji(r.text),tw);
-    const rh=7+ls.length*5+(r.sub?5.5:0);
-    need(rh+3);
-    doc.setFillColor(...C.white);doc.rect(x0,y,bw_,rh,'F');
-    if(r.check!==undefined){
-      const bx=x0+6,by=y+2;
-      doc.setDrawColor(...C.coral);doc.setLineWidth(.7);doc.rect(bx,by,4.6,4.6);
-      if(r.check){doc.setFillColor(...C.coral);doc.rect(bx,by,4.6,4.6,'F');
-        doc.setDrawColor(255,255,255);doc.setLineWidth(.9);
-        doc.line(bx+1,by+2.6,bx+2,by+3.6);doc.line(bx+2,by+3.6,bx+3.8,by+1.2);}
-    }
-    doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.setTextColor(...C.ink);
-    let yy=y+5.6;
-    ls.forEach(l=>{doc.text(l,tx,yy);yy+=5;});
-    if(r.sub){doc.setFontSize(9);doc.setTextColor(...C.soft);doc.text(noEmoji(r.sub),tx,yy);yy+=5;}
-    doc.setDrawColor(...C.hair);doc.setLineWidth(.25);
-    doc.line(x0+4,y+rh-.6,x0+bw_-4,y+rh-.6);
-    y+=rh;
-  }
-  function section(title,rows){
-    if(!rows.length)return;
-    openBox(title,false);
-    rows.forEach(r=>{
-      if(y>H-24){closeBox();newPage();openBox(title,true);}
-      row(r);
+  /* habit card, like the site */
+  function habitRow(hh){
+    const logs=new Set(D.habitLogs.filter(l=>l.habit_id===hh.id).map(l=>l.log_date));
+    const st=habitStreak(hh);
+    need(26);
+    doc.setFillColor(...C.white);doc.roundedRect(M,y,W-2*M,22,4,4,'F');
+    F('bold',12);doc.setTextColor(...C.ink);
+    doc.text(noEmoji(hh.title),M+6,y+8.6);
+    const pill='Day streak: '+st;
+    F('bold',9);
+    const pw=doc.getTextWidth(pill)+8;
+    doc.setFillColor(...C.sunsft);doc.roundedRect(M+W-2*M-6-pw,y+4.5,pw,8,4,4,'F');
+    doc.setTextColor(...C.coral);doc.text(pill,M+W-2*M-6-pw/2,y+10.3,{align:'center'});
+    let dx=M+6;const dw=(W-2*M-12)/7;
+    last7().forEach(d=>{
+      const hit=logs.has(dayISO(d));
+      if(hit){doc.setFillColor(...C.mint);doc.circle(dx+dw/2,y+17,3,'F');}
+      else{doc.setDrawColor(...C.hair);doc.setLineWidth(.5);doc.circle(dx+dw/2,y+17,3);}
+      dx+=dw;
     });
-    closeBox();
+    y+=26;
   }
-
-  if(sel.includes('tasks'))section('Tasks',D.tasks.map(t=>({
-    text:t.title,check:!!t.done,
-    sub:[t.category,t.priority,t.due_date?('due '+t.due_date):null].filter(Boolean).join('   ·   ')})));
-  if(sel.includes('habits'))section('Habits',D.habits.map(hh=>({
-    text:(hh.emoji||'')+' '+hh.title,sub:habitStreak(hh)+' day streak'})));
-  if(sel.includes('sched'))section('Schedule',D.sched.map(e=>({
-    text:e.title,sub:[e.event_date?fmtDate(e.event_date):null,e.time?e.time.slice(0,5):null].filter(Boolean).join('   ·   ')})));
-  if(sel.includes('notes'))section('Notes',D.notes.map(n=>({
-    text:(n.pinned?'[Pinned] ':'')+(n.title||'Untitled'),sub:(n.body||'').slice(0,140)})));
-  if(sel.includes('journal'))section('Journal',D.journal.map(j=>({
-    text:new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
-    sub:j.text.slice(0,160)})));
-  if(sel.includes('sessions')){
-    const tot=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
-    section('Focus sessions',D.sessions.slice(0,40).map(s=>({
-      text:s.minutes+' min focus',
-      sub:new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · total '+tot+' min'})));
+  /* schedule chip, like the site */
+  function schedRow(e){
+    const c=BGC[e.color]||C.sky;
+    need(17);
+    doc.setFillColor(...c);doc.roundedRect(M,y,W-2*M,13,4,4,'F');
+    F('bold',11);doc.setTextColor(255,255,255);
+    const label=(e.time?e.time.slice(0,5)+'   \u00b7   ':'')+e.title+(e.event_date?('     '+fmtDate(e.event_date)):'');
+    doc.text(noEmoji(label),M+6,y+8.6);
+    y+=17;
   }
+  /* notes grid, like the site's pastel cards */
+  function notesGrid(list){
+    const bgc=[[255,225,223],[216,247,232],[221,238,255],[255,243,209],[233,225,255],[255,232,217]];
+    const cols=2,gap=5,cw=(W-2*M-gap)/cols;
+    for(let i=0;i<list.length;i+=cols){
+      const grp=list.slice(i,i+cols);
+      const hs=grp.map(n=>{
+        F('bold',10.5);const tls=doc.splitTextToSize(noEmoji(n.title||'Untitled'),cw-8);
+        F('normal',9);const bls=doc.splitTextToSize(noEmoji((n.body||'').slice(0,110)),cw-8);
+        return 8+tls.length*5+Math.min(bls.length,3)*4.4+5;
+      });
+      const rh=Math.max(...hs);
+      need(rh+5);
+      grp.forEach((n,ci)=>{
+        const nx=M+ci*(cw+gap);
+        doc.setFillColor(...bgc[(n.color||0)%6]);doc.roundedRect(nx,y,cw,rh,3,3,'F');
+        let yy=y+6;
+        F('bold',10.5);doc.setTextColor(...C.ink);
+        doc.splitTextToSize(noEmoji((n.pinned?'Pinned \u00b7 ':'')+(n.title||'Untitled')),cw-8).forEach(l=>{doc.text(l,nx+4,yy);yy+=5;});
+        F('normal',9);doc.setTextColor(60,70,112);
+        doc.splitTextToSize(noEmoji((n.body||'').slice(0,110)),cw-8).slice(0,3).forEach(l=>{doc.text(l,nx+4,yy);yy+=4.4;});
+      });
+      y+=rh+5;
+    }
+    y+=3;
+  }
+  /* journal card, like the site */
+  function journalRow(j){
+    F('normal',10);
+    const ls=doc.splitTextToSize(noEmoji(j.text),W-2*M-12);
+    const rh=17+ls.length*5;
+    need(rh+4);
+    doc.setFillColor(...C.white);doc.roundedRect(M,y,W-2*M,rh,4,4,'F');
+    F('bold',9.5);doc.setTextColor(...C.soft);
+    doc.text(new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),M+6,y+7);
+    const mw=MOODW[j.mood]||'';
+    if(mw){F('bold',9);const pw=doc.getTextWidth(mw)+10;
+      doc.setFillColor(...C.sunsft);doc.roundedRect(M+W-2*M-6-pw,y+3.5,pw,7,3.5,3.5,'F');
+      doc.setTextColor(...C.ink);doc.text(mw,M+W-2*M-6-pw/2,y+8.4,{align:'center'});}
+    let yy=y+13.5;F('normal',10);doc.setTextColor(...C.ink);
+    ls.forEach(l=>{doc.text(l,M+6,yy);yy+=5;});
+    y+=rh+4;
+  }
+  /* focus session row, like the site */
+  function sessRow(s){
+    need(14);
+    doc.setFillColor(...C.white);doc.roundedRect(M,y,W-2*M,11,3,3,'F');
+    doc.setFillColor(...C.mint);doc.roundedRect(M,y,3.2,11,1.6,1.6,'F');
+    F('bold',10.5);doc.setTextColor(...C.ink);
+    doc.text(s.minutes+' min focus',M+8,y+7.4);
+    F('normal',9);doc.setTextColor(...C.soft);
+    doc.text(new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),W-M-6,y+7.4,{align:'right'});
+    y+=15;
+  }
+  if(sel.includes('tasks')&&D.tasks.length){shead(C.coral,'Tasks');D.tasks.forEach(taskRow);y+=5;}
+  if(sel.includes('habits')&&D.habits.length){shead(C.sun,'Habits');D.habits.forEach(habitRow);y+=5;}
+  if(sel.includes('sched')&&D.sched.length){shead(C.sky,'Schedule');D.sched.forEach(schedRow);y+=5;}
+  if(sel.includes('notes')&&D.notes.length){shead(C.lilac,'Notes');notesGrid(D.notes);}
+  if(sel.includes('journal')&&D.journal.length){shead(C.peach,'Journal');D.journal.forEach(journalRow);y+=5;}
+  if(sel.includes('sessions')&&D.sessions.length){shead(C.mint,'Focus sessions');D.sessions.slice(0,40).forEach(sessRow);y+=5;}
   footer();
   doc.save('dayjoy-export-'+todayISO()+'.pdf');
 }
