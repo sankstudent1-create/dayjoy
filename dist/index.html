@@ -198,9 +198,9 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .j-entry .delj{color:var(--coral)}.j-entry .editj{color:var(--sky)}
 .j-entry .wc{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-soft)}
 textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:14px;font-family:inherit;font-weight:600;font-size:15px;min-height:110px;resize:vertical;background:#fff;color:var(--ink);outline:none}
-.timer-presets{display:flex;gap:8px;justify-content:center;margin:12px 0;flex-wrap:wrap}
-.tpre{border:2px solid var(--ink);background:#fff;border-radius:99px;padding:8px 18px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--ink)}
-.tpre.on{background:var(--ink);color:#fff}
+.hmsset{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:12px}
+.hmsset input{width:64px;border:3px solid var(--ink);border-radius:14px;padding:8px 4px;font-family:inherit;font-weight:800;font-size:16px;text-align:center;background:#fff;color:var(--ink);outline:none}
+.hmsset span{font-weight:900;font-size:20px;color:var(--ink-soft)}
 .mode-seg{display:flex;background:rgba(255,255,255,.7);border-radius:99px;padding:4px;width:fit-content;margin:0 auto 4px}
 .mode-seg button{border:none;background:none;font-family:inherit;font-weight:800;padding:8px 22px;border-radius:99px;cursor:pointer;color:var(--ink-soft);font-size:14px}
 .mode-seg button.on{background:var(--ink);color:#fff}
@@ -245,7 +245,7 @@ body[data-theme="midnight"] #scr-auth{background:linear-gradient(180deg,#2A3054,
 body[data-theme="midnight"] .auth-sheet,body[data-theme="midnight"] .sheet,body[data-theme="midnight"] .navbar,body[data-theme="midnight"] .searchbar,body[data-theme="midnight"] .datenav{background:#2D3560}
 body[data-theme="midnight"] .seg{background:#232A52}
 body[data-theme="midnight"] input,body[data-theme="midnight"] textarea,body[data-theme="midnight"] select{background:#232A52!important;color:#FFF6EA!important;border-color:#8B93C4!important}
-body[data-theme="midnight"] .ghostbtn,body[data-theme="midnight"] .fchip,body[data-theme="midnight"] .tpre,body[data-theme="midnight"] .xfmt{background:#2D3560;color:#FFF6EA;border-color:#8B93C4}
+body[data-theme="midnight"] .ghostbtn,body[data-theme="midnight"] .fchip,body[data-theme="midnight"] .xfmt{background:#2D3560;color:#FFF6EA;border-color:#8B93C4}
 body[data-theme="midnight"] .searchbar input{background:none!important;border:none!important}
 body[data-theme="midnight"] .datenav button{background:#232A52;color:#FFF6EA}
 body[data-theme="midnight"] .mode-seg{background:rgba(0,0,0,.3)}
@@ -268,7 +268,7 @@ body[data-theme="midnight"] .habit-card .streak{color:#1E2A5A}
 body[data-theme="midnight"] .journal-card h4{color:#1E2A5A}
 body[data-theme="midnight"] .note-card h4,body[data-theme="midnight"] .note-full h4{color:#1E2A5A}
 /* buttons that used --ink bg */
-body[data-theme="midnight"] .seg button.on,body[data-theme="midnight"] .fchip.on,body[data-theme="midnight"] .tpre.on,body[data-theme="midnight"] .mode-seg button.on{background:var(--coral);color:#fff}
+body[data-theme="midnight"] .seg button.on,body[data-theme="midnight"] .fchip.on,body[data-theme="midnight"] .mode-seg button.on{background:var(--coral);color:#fff}
 body[data-theme="midnight"] .addbtn{background:var(--coral)}
 body[data-theme="midnight"] .navbtn.on .pill{background:rgba(255,123,123,.28)}
 /* settings banner */
@@ -295,8 +295,6 @@ body[data-theme="midnight"] .setbanner{background:linear-gradient(135deg,#4A2E35
 .switch input:checked + .sl{background:var(--mint)}
 .switch input:checked + .sl::after{left:25px}
 .goalbar{height:16px;background:rgba(30,42,90,.1);border-radius:99px;margin:14px 4px 6px;overflow:hidden}.gfill{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--sky));border-radius:99px;transition:width .5s}
-#t-svg{touch-action:none;cursor:grab}
-#t-svg:active{cursor:grabbing}
 #t-knob{transition:cx .15s,cy .15s}
 .goalline{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;color:var(--ink-soft)}
 .goalline #goal-txt{margin-left:auto}
@@ -443,8 +441,7 @@ body[data-theme="midnight"] .tomdot{background:rgba(255,255,255,.14)}
           <div class="mode-seg"><button id="mode-focus" class="on">🍅 Focus</button><button id="mode-short">☕ Short</button><button id="mode-long">🌴 Long</button></div>
           <div class="ringwrap" style="width:190px;height:190px"><svg id="t-svg" width="190" height="190"><circle class="ring-bg" cx="95" cy="95" r="80"/><circle class="ring-fg" id="t-ring" cx="95" cy="95" r="80"/><circle id="t-knob" r="11" fill="#1E2A5A" stroke="#fff" stroke-width="4" style="filter:drop-shadow(0 2px 3px rgba(30,42,90,.3))"/></svg>
           <div class="ringtxt" style="pointer-events:none"><div class="t" id="t-time" style="font-size:44px">25:00</div><div class="s" id="t-state">Paused</div></div></div>
-          <p style="text-align:center;font-weight:700;font-size:12.5px;color:var(--ink-soft);margin-top:2px">💡 Drag the ring to set minutes</p>
-          <div class="timer-presets"><button class="tpre" data-min="15">15m</button><button class="tpre on" data-min="25">25m</button><button class="tpre" data-min="50">50m</button></div>
+          <div class="hmsset"><input id="t-hh" type="number" min="0" max="8" placeholder="HH"><span>:</span><input id="t-mm" type="number" min="0" max="59" placeholder="MM"><span>:</span><input id="t-ss" type="number" min="0" max="59" placeholder="SS"></div>
           <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="bigbtn" id="t-toggle" style="width:auto">▶ Start</button><button class="ghostbtn" id="t-reset">Reset</button></div>
           <div class="tomdots" id="tom-dots"></div>
           <label class="autorow"><span class="switch"><input type="checkbox" id="auto-break"><span class="sl"></span></span>Auto-start breaks</label>
@@ -956,7 +953,7 @@ $('jedit-save').onclick=async()=>{
 /* ---------- timer v2 ---------- */
 let T={dur:25*60,left:25*60,run:false,iv:null,mode:'focus',endAt:0,lens:{focus:25*60,short:5*60,long:15*60}};
 const CIRC=2*Math.PI*80;
-const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+const fmt=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');};
 const focusGoal=()=>+(localStorage.getItem('dayjoy-focus-goal')||120);
 const autoBreak=()=>localStorage.getItem('dayjoy-auto-break')==='1';
 function todaySessions(){const td=todayISO();return D.sessions.filter(s=>dayISO(new Date(s.created_at))===td);}
@@ -983,46 +980,32 @@ function setMode(m){
   T.mode=m;pauseTimer();
   ['focus','short','long'].forEach(x=>$('mode-'+x).classList.toggle('on',x===m));
   T.dur=T.left=T.lens[m];
+  hmsWrite(T.lens[m]);
   say(m==='focus'?'focus':m);drawT();
 }
 $('mode-focus').onclick=()=>setMode('focus');
 $('mode-short').onclick=()=>setMode('short');
 $('mode-long').onclick=()=>setMode('long');
-document.querySelectorAll('.tpre').forEach(p=>p.onclick=()=>{
-  if(T.run){toast('Pause first to change time \u23F8');return;}
-  document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));p.classList.add('on');
-  T.lens[T.mode]=+p.dataset.min*60;
-  T.dur=T.left=T.lens[T.mode];
+/* HH:MM:SS custom time box */
+function hmsRead(){
+  const h=Math.min(8,Math.max(0,+$('t-hh').value||0));
+  const m=Math.min(59,Math.max(0,+$('t-mm').value||0));
+  const s=Math.min(59,Math.max(0,+$('t-ss').value||0));
+  return h*3600+m*60+s;
+}
+function hmsWrite(total){
+  $('t-hh').value=Math.floor(total/3600);
+  $('t-mm').value=String(Math.floor(total%3600/60)).padStart(2,'0');
+  $('t-ss').value=String(total%60).padStart(2,'0');
+}
+function hmsApply(){
+  if(T.run){toast('Pause first to change time \u23F8');hmsWrite(T.left);return;}
+  const t=hmsRead();
+  if(t<1){toast('Set at least 1 second \u23F1');return;}
+  T.lens[T.mode]=T.dur=T.left=t;
   drawT();say(T.mode==='focus'?'focus':T.mode);sndPop();
-});
-/* round slider: drag the ring to set minutes */
-const tsvg=$('t-svg');
-let dragging=false;
-function ringMinutes(e){
-  const r=tsvg.getBoundingClientRect();
-  const cx=r.left+r.width/2, cy=r.top+r.height/2;
-  let a=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI;
-  a=(a+90+360)%360;
-  return Math.min(180,Math.max(1,Math.round(a/360*180)));
 }
-function ringSet(e){
-  const m=ringMinutes(e);
-  document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));
-  T.lens[T.mode]=T.dur=T.left=m*60;drawT();
-  const r=tsvg.getBoundingClientRect();
-  const a=Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2));
-  const knob=$('t-knob');
-  knob.setAttribute('cx',95+80*Math.cos(a));knob.setAttribute('cy',95+80*Math.sin(a));
-  say('focus');
-}
-tsvg.addEventListener('pointerdown',e=>{
-  if(T.run){toast('Pause first to change time \u23F8');return;}
-  dragging=true;try{tsvg.setPointerCapture(e.pointerId);}catch(_){}
-  ringSet(e);e.preventDefault();
-});
-tsvg.addEventListener('pointermove',e=>{if(dragging)ringSet(e);});
-tsvg.addEventListener('pointerup',()=>dragging=false);
-tsvg.addEventListener('pointercancel',()=>dragging=false);
+['t-hh','t-mm','t-ss'].forEach(id=>$(id).addEventListener('change',hmsApply));
 function startTimer(){
   if(T.run)return;
   if(T.left<=0)T.left=T.dur;
@@ -1101,6 +1084,7 @@ function renderStats(){
   }).join('');
 }
 $('auto-break').checked=autoBreak();
+hmsWrite(T.lens.focus);
 /* ---------- export studio ---------- */
 let xFormat='pdf';
 $('xf-pdf').onclick=()=>{xFormat='pdf';$('xf-pdf').classList.add('on');$('xf-json').classList.remove('on');};
