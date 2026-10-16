@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DayJoy — Your whole day, one happy place</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#FFF6EA; --ink:#1E2A5A; --ink-soft:#5B6480;
+  --coral:#FF7B7B; --coral-soft:#FFE1DF;
+  --mint:#35D99A;  --mint-soft:#D8F7E8;
+  --sky:#4FA8FF;   --sky-soft:#DDEEFF;
+  --sun:#FFC93C;   --sun-soft:#FFF3D1;
+  --lilac:#A78BFA; --lilac-soft:#E9E1FF;
+  --peach:#FF9F6B; --peach-soft:#FFE8D9;
+  --card:#FFFFFF; --r:26px; --shadow:0 6px 0 rgba(30,42,90,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh}
+#phone{width:100%;max-width:480px;min-height:100vh;background:var(--bg);position:relative;padding-bottom:120px}
+.screen{display:none;min-height:100vh;padding:34px 24px}
+.screen.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hero{text-align:center;margin:20px 0 26px}
+.hero .logo{font-size:56px}
+.hero h1{font-size:32px;font-weight:800}
+.hero p{color:var(--ink-soft);font-weight:700;margin-top:6px}
+.field{margin-bottom:12px}
+.field label{font-weight:800;font-size:14px;display:block;margin-bottom:6px}
+.field input{width:100%;border:3px solid var(--ink);border-radius:16px;padding:13px 14px;font-family:inherit;font-weight:700;font-size:15px;background:#fff;color:var(--ink);outline:none}
+.bigbtn{background:var(--coral);color:#fff;border:none;border-radius:99px;padding:14px 44px;font-size:18px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 5px 0 #d95f5f;width:100%}
+.bigbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #d95f5f}
+.ghostbtn{background:#fff;border:2px solid var(--ink);color:var(--ink);border-radius:99px;padding:10px 26px;font-weight:800;font-family:inherit;cursor:pointer}
+.linkbtn{background:none;border:none;color:var(--sky);font-weight:800;font-family:inherit;font-size:15px;cursor:pointer;text-decoration:underline}
+.err{background:var(--coral-soft);color:#b33;border-radius:14px;padding:10px 14px;font-weight:700;margin:10px 0;display:none}
+.okmsg{background:var(--mint-soft);color:#1a7a4e;border-radius:14px;padding:10px 14px;font-weight:700;margin:10px 0;display:none}
+.sqlbox{background:#1E2A5A;color:#D8F7E8;border-radius:18px;padding:16px;font-family:monospace;font-size:11.5px;line-height:1.5;max-height:300px;overflow:auto;white-space:pre;margin:10px 0}
+.step{background:#fff;border-radius:20px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow)}
+.step h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.step p{font-size:14px;font-weight:600;color:var(--ink-soft);line-height:1.5}
+.brandbar{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.brandpick{border:3px solid var(--ink);background:#fff;border-radius:99px;padding:8px 20px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--ink)}
+.brandpick.on{background:var(--ink);color:#fff}
+/* app */
+.topbar{padding:26px 22px 6px;display:flex;justify-content:space-between;align-items:flex-start}
+.greet h1{font-size:30px;font-weight:800;line-height:1.1;letter-spacing:-.5px}
+.greet p{color:var(--ink-soft);font-weight:600;font-size:14px;margin-top:4px}
+.dayring{width:104px;height:104px;border-radius:50%;position:relative;flex-shrink:0;background:conic-gradient(var(--mint) 0deg,#eee 0deg);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+.dayring .inner{width:78px;height:78px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dayring .pct{font-size:22px;font-weight:800;line-height:1}
+.dayring .lbl{font-size:9px;font-weight:700;color:var(--ink-soft);letter-spacing:.5px}
+.confetti{position:absolute;inset:-8px;pointer-events:none;font-size:11px}
+.confetti span{position:absolute;animation:pop 2.4s ease-in-out infinite}
+@keyframes pop{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(20deg)}}
+.section{padding:14px 22px 0}
+.section-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.section-head h2{font-size:22px;font-weight:800}
+.section-head .ico{font-size:20px}
+.section-head .more{margin-left:auto;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;background:none;border:none;font-family:inherit}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.task-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:20px;margin-bottom:10px;color:#fff;font-weight:700;box-shadow:0 4px 0 rgba(30,42,90,.10)}
+.task-row .cb{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);border:none;flex-shrink:0;cursor:pointer;font-size:18px;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.task-row .t{flex:1;font-size:16px;line-height:1.25}
+.task-row.done .t{text-decoration:line-through;opacity:.75}
+.task-row .cat{font-size:11px;font-weight:700;background:rgba(255,255,255,.45);padding:4px 10px;border-radius:99px;white-space:nowrap}
+.task-row .del{background:rgba(255,255,255,.35);border:none;color:#fff;font-size:14px;width:28px;height:28px;border-radius:50%;cursor:pointer;flex-shrink:0}
+.bg-coral{background:var(--coral)} .bg-mint{background:#4FD1A5} .bg-sky{background:var(--sky)}
+.bg-sun{background:var(--sun);color:var(--ink)!important} .bg-lilac{background:var(--lilac)} .bg-peach{background:var(--peach)}
+.bg-sun .cat,.bg-sun .del{background:rgba(30,42,90,.12);color:var(--ink)}
+.chips{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{min-width:118px;border-radius:22px;padding:14px 12px;color:#fff;font-weight:700;box-shadow:0 4px 0 rgba(30,42,90,.10);flex-shrink:0}
+.chip .time{font-size:15px}.chip .name{font-size:14px;line-height:1.25;margin-top:2px}
+.chip.sun{color:var(--ink)}
+.focus{background:linear-gradient(135deg,#FFE9A8,#FFD9E8 60%,#D9F2FF);border-radius:28px;padding:22px;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.focus h3{font-size:19px;font-weight:800}
+.ringwrap{width:150px;height:150px;margin:10px auto;position:relative}
+.ringwrap svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.7);stroke-width:12}
+.ring-fg{fill:none;stroke:var(--ink);stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .5s}
+.ringtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringtxt .t{font-size:34px;font-weight:800;line-height:1}
+.ringtxt .s{font-size:12px;font-weight:700;color:var(--ink-soft)}
+.notes-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.notes-row::-webkit-scrollbar{display:none}
+.note-card{min-width:150px;max-width:170px;border-radius:22px;padding:16px 14px;color:var(--ink);box-shadow:0 4px 0 rgba(30,42,90,.10);flex-shrink:0;cursor:pointer}
+.note-card .e{font-size:26px}.note-card h4{font-size:16px;font-weight:800;margin:6px 0 4px}
+.note-card p{font-size:12.5px;font-weight:600;color:#3c4670;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.journal-card{background:var(--sun-soft);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);cursor:pointer}
+.journal-card h4{font-size:17px;font-weight:800}
+.journal-card p{font-size:14px;font-weight:600;color:#3c4670;margin-top:6px;line-height:1.5}
+.moods{display:flex;gap:10px;margin:12px 0}
+.mood{font-size:30px;cursor:pointer;filter:grayscale(1);opacity:.5;transition:.2s;border:none;background:none}
+.mood.on{filter:none;opacity:1;transform:scale(1.25)}
+.view{display:none}.view.active{display:block;animation:fade .25s}
+.addbar{display:flex;gap:10px;margin-bottom:14px}
+.addbar input,.addbar select{flex:1;border:3px solid var(--ink);border-radius:18px;padding:12px 14px;font-family:inherit;font-weight:700;font-size:15px;background:#fff;color:var(--ink);outline:none;min-width:0}
+.addbar button{background:var(--ink);color:#fff;border:none;border-radius:18px;padding:0 22px;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0}
+.filterchips{display:flex;gap:8px;margin-bottom:12px}
+.fchip{border:2px solid var(--ink);background:#fff;border-radius:99px;padding:6px 16px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.fchip.on{background:var(--ink);color:#fff}
+.ev-row{background:#fff;border-radius:20px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;gap:14px;align-items:center}
+.ev-row .tm{font-size:17px;font-weight:800;min-width:74px}
+.ev-row .nm{font-size:15px;font-weight:700;flex:1}
+.ev-row .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.ev-row .delx{background:var(--coral-soft);border:none;color:var(--coral);width:30px;height:30px;border-radius:50%;cursor:pointer;font-weight:800}
+.notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note-full{border-radius:22px;padding:16px;box-shadow:0 4px 0 rgba(30,42,90,.10);cursor:pointer;min-height:130px}
+.note-full h4{font-size:15px;font-weight:800;margin-bottom:4px}
+.note-full p{font-size:12.5px;font-weight:600;color:#3c4670;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.j-entry{background:#fff;border-radius:22px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow)}
+.j-entry .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.j-entry .dt{font-size:13px;font-weight:800;color:var(--ink-soft)}
+.j-entry .md{font-size:24px}
+.j-entry p{font-size:14.5px;font-weight:600;line-height:1.55;color:#2c3554;white-space:pre-wrap}
+.j-entry .delj{background:none;border:none;color:var(--coral);font-weight:800;cursor:pointer;font-family:inherit;font-size:13px}
+textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:14px;font-family:inherit;font-weight:600;font-size:15px;min-height:110px;resize:vertical;background:#fff;color:var(--ink);outline:none}
+.timer-presets{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.tpre{border:2px solid var(--ink);background:#fff;border-radius:99px;padding:8px 18px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--ink)}
+.tpre.on{background:var(--ink);color:#fff}
+.statstrip{display:flex;gap:10px;margin-top:14px}
+.stat{flex:1;background:#fff;border-radius:20px;padding:14px;text-align:center;box-shadow:var(--shadow)}
+.stat .v{font-size:22px;font-weight:800}.stat .l{font-size:11px;font-weight:700;color:var(--ink-soft)}
+.log-row{display:flex;justify-content:space-between;background:#fff;border-radius:16px;padding:10px 16px;margin-bottom:8px;font-weight:700;font-size:14px;box-shadow:0 3px 0 rgba(30,42,90,.06)}
+.modal{position:fixed;inset:0;background:rgba(30,42,90,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.open{display:flex}
+.sheet{background:#fff;width:100%;max-width:480px;border-radius:30px 30px 0 0;padding:24px 22px 40px;animation:up .25s}
+@keyframes up{from{transform:translateY(40px)}to{transform:none}}
+.sheet h3{font-size:20px;font-weight:800;margin-bottom:12px}
+.sheet input,.sheet textarea{width:100%;border:3px solid var(--ink);border-radius:16px;padding:12px;font-family:inherit;font-weight:600;font-size:15px;margin-bottom:10px;color:var(--ink);outline:none}
+.sheet textarea{min-height:120px;resize:vertical}
+.sheet .row{display:flex;gap:10px}.sheet .row button{flex:1}
+.navbar{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:452px;background:#fff;border-radius:28px;box-shadow:0 10px 30px rgba(30,42,90,.18);display:flex;padding:10px 6px;z-index:40}
+.navbtn{flex:1;border:none;background:none;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;border-radius:18px;color:var(--ink-soft);font-weight:700;font-size:11px}
+.navbtn .ni{font-size:23px}
+.navbtn.on{color:var(--ink)}
+.navbtn.on .pill{background:var(--coral-soft);border-radius:14px;padding:4px 14px}
+.navbtn .pill{padding:4px 14px;border-radius:14px}
+.empty{text-align:center;color:var(--ink-soft);font-weight:700;padding:26px 10px;font-size:15px}
+.footer-note{text-align:center;color:var(--ink-soft);font-weight:700;font-size:12px;padding:26px}
+.topbtns{display:flex;gap:8px;margin:10px 22px 0}
+.topbtns .ghostbtn{font-size:13px;padding:8px 18px}
+.spin{width:44px;height:44px;border:5px solid var(--coral-soft);border-top-color:var(--coral);border-radius:50%;margin:60px auto;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="phone">
+
+  <!-- SETUP -->
+  <div class="screen" id="scr-setup">
+    <div class="hero"><div class="logo">🎉</div><h1 class="brand-name">DayJoy</h1><p>Your whole day, one happy place</p></div>
+    <div class="brandbar" id="brandbar"></div>
+    <div class="step"><h3>Step 1 — Create the tables</h3><p>In your Supabase dashboard, open <b>SQL Editor</b>, paste the SQL below and press <b>Run</b>. Do this once.</p>
+      <div class="sqlbox" id="sqlbox"></div>
+      <button class="ghostbtn" id="sql-copy" style="width:100%">📋 Copy SQL</button>
+    </div>
+    <div class="step"><h3>Step 2 — Email sign-in</h3><p>In Supabase → <b>Authentication → Providers → Email</b>: turn <b>OFF “Confirm email”</b> (or confirm via the email you receive) so you can sign in right away.</p></div>
+    <div class="step"><h3>Step 3 — Connect the app</h3><p>Paste your Supabase <b>Project URL</b> and <b>anon public key</b> (Supabase → Project Settings → API). They stay on this device only.</p>
+      <div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="cfg-url" placeholder="https://xyzcompany.supabase.co"></div>
+      <div class="field"><label>Anon public key</label><input id="cfg-key" placeholder="eyJhbGciOi…" type="password"></div>
+      <div class="err" id="setup-err"></div>
+      <button class="bigbtn" id="cfg-save">Connect 🚀</button>
+    </div>
+  </div>
+
+  <!-- AUTH -->
+  <div class="screen" id="scr-auth">
+    <div class="hero"><div class="logo">🔐</div><h1 id="auth-title">Welcome back!</h1><p class="brand-name">Sign in to DayJoy</p></div>
+    <div class="field"><label>Email</label><input id="auth-email" type="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="••••••••"></div>
+    <div class="err" id="auth-err"></div><div class="okmsg" id="auth-ok"></div>
+    <button class="bigbtn" id="auth-go">Sign in →</button>
+    <p style="text-align:center;margin-top:14px;font-weight:700;color:var(--ink-soft)"><span id="auth-switch-q">New here?</span> <button class="linkbtn" id="auth-switch">Create account</button></p>
+    <p style="text-align:center;margin-top:18px"><button class="linkbtn" id="cfg-reset" style="color:var(--ink-soft)">Change Supabase connection</button></p>
+  </div>
+
+  <!-- LOADING -->
+  <div class="screen" id="scr-load"><div class="spin"></div><p style="text-align:center;font-weight:800;color:var(--ink-soft)">Loading your day…</p></div>
+
+  <!-- APP -->
+  <div class="screen" id="scr-app" style="padding:0 0 120px">
+    <div class="topbar">
+      <div class="greet"><h1 id="greet">Good evening</h1><p id="dateline"></p></div>
+      <div class="dayring" id="dayring"><div class="confetti" id="confetti"></div>
+        <div class="inner"><div class="pct" id="daypct">0%</div><div class="lbl">DAY DONE</div></div>
+      </div>
+    </div>
+    <div class="topbtns">
+      <button class="ghostbtn" id="btn-brand">🎉 <span class="brand-name">DayJoy</span> ▾</button>
+      <button class="ghostbtn" id="btn-sql">🗄️ DB Setup</button>
+      <button class="ghostbtn" id="btn-out">Sign out</button>
+    </div>
+    <div class="brandbar" id="brandbar2" style="display:none;margin:10px 22px 0"></div>
+
+    <div class="view active" id="v-home">
+      <div class="section"><div class="section-head"><span class="ico">✅</span><h2>Today's Tasks</h2><button class="more" data-go="tasks">See all →</button></div><div id="home-tasks"></div></div>
+      <div class="section"><div class="section-head"><span class="ico">📅</span><h2>Schedule</h2><button class="more" data-go="schedule">See all →</button></div><div class="chips" id="home-sched"></div></div>
+      <div class="section"><div class="section-head"><span class="ico">⏱️</span><h2>Focus Timer</h2></div>
+        <div class="focus"><h3>🍅 Pomodoro</h3>
+          <div class="ringwrap"><svg width="150" height="150"><circle class="ring-bg" cx="75" cy="75" r="62"/><circle class="ring-fg" id="home-ring" cx="75" cy="75" r="62"/></svg>
+          <div class="ringtxt"><div class="t" id="home-time">25:00</div><div class="s">Ready to focus</div></div></div>
+          <button class="bigbtn" data-go="time" style="width:auto">▶ Start Focus</button>
+        </div></div>
+      <div class="section"><div class="section-head"><span class="ico">📝</span><h2>Notes</h2><button class="more" data-go="notes">See all →</button></div><div class="notes-row" id="home-notes"></div></div>
+      <div class="section"><div class="section-head"><span class="ico">💛</span><h2>Journal</h2><button class="more" data-go="journal">Write →</button></div><div class="journal-card" id="home-journal" data-go="journal"></div></div>
+      <div class="footer-note">Made with 💛 by <span class="brand-name">DayJoy</span></div>
+    </div>
+
+    <div class="view" id="v-tasks">
+      <div class="section"><div class="section-head"><span class="ico">✅</span><h2>Tasks</h2></div>
+        <div class="addbar"><input id="task-in" placeholder="New task…"><select id="task-cat"><option>Personal</option><option>Work</option><option>Health</option><option>Study</option></select><button id="task-add">+</button></div>
+        <div class="filterchips"><button class="fchip on" data-f="all">All</button><button class="fchip" data-f="open">To do</button><button class="fchip" data-f="done">Done 🎉</button></div>
+        <div id="task-list"></div></div>
+    </div>
+
+    <div class="view" id="v-schedule">
+      <div class="section"><div class="section-head"><span class="ico">📅</span><h2>Schedule</h2></div>
+        <div class="addbar"><input id="ev-name" placeholder="Event…"><input id="ev-time" type="time" style="flex:0 0 118px"><button id="ev-add">+</button></div>
+        <div id="ev-list"></div></div>
+    </div>
+
+    <div class="view" id="v-notes">
+      <div class="section"><div class="section-head"><span class="ico">📝</span><h2>Notes</h2></div>
+        <button class="bigbtn" id="note-new" style="margin-bottom:14px">＋ New Note</button>
+        <div class="notes-grid" id="note-grid"></div></div>
+    </div>
+
+    <div class="view" id="v-journal">
+      <div class="section"><div class="section-head"><span class="ico">💛</span><h2>Journal</h2></div>
+        <div class="card" style="margin-bottom:14px"><h3 style="font-size:17px;font-weight:800">How was today?</h3>
+          <div class="moods" id="moods"><button class="mood" data-m="😍">😍</button><button class="mood on" data-m="😊">😊</button><button class="mood" data-m="🙂">🙂</button><button class="mood" data-m="😟">😟</button><button class="mood" data-m="😴">😴</button></div>
+          <textarea class="jbox" id="j-in" placeholder="Dear diary…"></textarea>
+          <button class="bigbtn" id="j-add" style="margin-top:12px">Save Entry ✍️</button></div>
+        <div id="j-list"></div></div>
+    </div>
+
+    <div class="view" id="v-time">
+      <div class="section"><div class="section-head"><span class="ico">⏱️</span><h2>Focus Time</h2></div>
+        <div class="focus"><h3>🍅 Focus Session</h3>
+          <div class="ringwrap" style="width:190px;height:190px"><svg width="190" height="190"><circle class="ring-bg" cx="95" cy="95" r="80"/><circle class="ring-fg" id="t-ring" cx="95" cy="95" r="80"/></svg>
+          <div class="ringtxt"><div class="t" id="t-time" style="font-size:44px">25:00</div><div class="s" id="t-state">Paused</div></div></div>
+          <div class="timer-presets"><button class="tpre" data-min="15">15m</button><button class="tpre on" data-min="25">25m</button><button class="tpre" data-min="50">50m</button></div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:6px"><button class="bigbtn" id="t-toggle" style="width:auto">▶ Start</button><button class="ghostbtn" id="t-reset">Reset</button></div>
+        </div>
+        <div class="statstrip"><div class="stat"><div class="v" id="st-focus">0m</div><div class="l">focused today</div></div><div class="stat"><div class="v" id="st-sess">0</div><div class="l">sessions</div></div></div>
+        <div class="section-head" style="margin-top:16px"><span class="ico">📜</span><h2>Recent sessions</h2></div><div id="sess-log"></div>
+      </div>
+    </div>
+
+    <nav class="navbar">
+      <button class="navbtn on" data-v="home"><span class="pill"><span class="ni">🏠</span></span>Home</button>
+      <button class="navbtn" data-v="tasks"><span class="pill"><span class="ni">✅</span></span>Tasks</button>
+      <button class="navbtn" data-v="notes"><span class="pill"><span class="ni">📝</span></span>Notes</button>
+      <button class="navbtn" data-v="journal"><span class="pill"><span class="ni">💛</span></span>Journal</button>
+      <button class="navbtn" data-v="time"><span class="pill"><span class="ni">⏱️</span></span>Time</button>
+    </nav>
+  </div>
+</div>
+
+<div class="modal" id="note-modal"><div class="sheet">
+  <h3 id="nm-title">New note 📝</h3><input id="nm-name" placeholder="Note title…"><textarea id="nm-body" placeholder="Write it down…"></textarea>
+  <div class="row"><button class="ghostbtn" id="nm-del" style="display:none">Delete</button><button class="bigbtn" id="nm-save">Save 💾</button></div>
+  <div class="row" style="margin-top:10px"><button class="ghostbtn" id="nm-close" style="flex:1">Close</button></div>
+</div></div>
+
+<div class="modal" id="sql-modal"><div class="sheet">
+  <h3>🗄️ Database setup</h3><p style="font-weight:600;color:var(--ink-soft);font-size:14px;margin-bottom:8px">Run this once in Supabase → SQL Editor:</p>
+  <div class="sqlbox" id="sqlbox2" style="max-height:260px"></div>
+  <div class="row"><button class="bigbtn" id="sql-copy2">📋 Copy SQL</button></div>
+  <div class="row" style="margin-top:10px"><button class="ghostbtn" id="sql-close" style="flex:1">Close</button></div>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PALETTE=['bg-coral','bg-mint','bg-sky','bg-sun','bg-lilac','bg-peach'];
+const NOTE_BG=['#FFE1DF','#D8F7E8','#DDEEFF','#FFF3D1','#E9E1FF','#FFE8D9'];
+const EMOJI=['💡','📚','🍳','✈️','🎵','💭','🛒','🏋️'];
+const BRANDS=['DayJoy','Taskly','OneDay'];
+const ENV_URL="__SUPABASE_URL__", ENV_KEY="__SUPABASE_ANON_KEY__";
+
+/* ---------- brand ---------- */
+let brand=localStorage.getItem('dayjoy-brand')||'DayJoy';
+function applyBrand(){
+  document.querySelectorAll('.brand-name').forEach(e=>e.textContent=brand);
+  document.title=brand+' — Your whole day, one happy place';
+  [['brandbar'],['brandbar2']].forEach(([id])=>{const h=$(id);if(!h)return;
+    h.innerHTML=BRANDS.map(b=>`<button class="brandpick${b===brand?' on':''}" data-b="${b}">${b}</button>`).join('');
+    h.querySelectorAll('.brandpick').forEach(x=>x.onclick=()=>{brand=x.dataset.b;localStorage.setItem('dayjoy-brand',brand);applyBrand();});});
+}
+$('btn-brand').onclick=()=>{const b=$('brandbar2');b.style.display=b.style.display==='none'?'flex':'none';};
+
+/* ---------- SQL ---------- */
+const SQL=`-- DayJoy tables — run ONCE in Supabase > SQL Editor
+create table if not exists dayjoy_tasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null, category text default 'Personal',
+  done boolean default false, color text default 'bg-coral',
+  created_at timestamptz default now());
+create table if not exists dayjoy_notes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text, body text, color int default 0, emoji int default 0,
+  created_at timestamptz default now());
+create table if not exists dayjoy_schedule (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null, time text not null, color text default 'bg-sky',
+  created_at timestamptz default now());
+create table if not exists dayjoy_journal (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  mood text default '😊', text text not null,
+  created_at timestamptz default now());
+create table if not exists dayjoy_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  minutes int not null, created_at timestamptz default now());
+alter table dayjoy_tasks enable row level security;
+alter table dayjoy_notes enable row level security;
+alter table dayjoy_schedule enable row level security;
+alter table dayjoy_journal enable row level security;
+alter table dayjoy_sessions enable row level security;
+create policy "Users manage own dayjoy_tasks" on dayjoy_tasks for all using (auth.uid()=user_id) with check (auth.uid()=user_id);
+create policy "Users manage own dayjoy_notes" on dayjoy_notes for all using (auth.uid()=user_id) with check (auth.uid()=user_id);
+create policy "Users manage own dayjoy_schedule" on dayjoy_schedule for all using (auth.uid()=user_id) with check (auth.uid()=user_id);
+create policy "Users manage own dayjoy_journal" on dayjoy_journal for all using (auth.uid()=user_id) with check (auth.uid()=user_id);
+create policy "Users manage own dayjoy_sessions" on dayjoy_sessions for all using (auth.uid()=user_id) with check (auth.uid()=user_id);`;
+$('sqlbox').textContent=SQL; $('sqlbox2').textContent=SQL;
+const copySQL=()=>{navigator.clipboard.writeText(SQL).then(()=>{alert('📋 SQL copied! Paste it in Supabase > SQL Editor and press Run.');});};
+$('sql-copy').onclick=copySQL; $('sql-copy2').onclick=copySQL;
+$('btn-sql').onclick=()=>$('sql-modal').classList.add('open');
+$('sql-close').onclick=()=>$('sql-modal').classList.remove('open');
+$('sql-modal').onclick=e=>{if(e.target.id==='sql-modal')$('sql-modal').classList.remove('open');};
+
+/* ---------- screens ---------- */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0);}
+function err(id,msg){const e=$(id);e.textContent=msg;e.style.display=msg?'block':'none';}
+
+/* ---------- supabase ---------- */
+let cfg=JSON.parse(localStorage.getItem('dayjoy-cfg')||'null');
+let sb=null,user=null;
+let D={tasks:[],notes:[],sched:[],journal:[],sessions:[]};
+
+async function boot(){
+  applyBrand();
+  const envUrl=ENV_URL.startsWith('__')?null:ENV_URL;
+  const envKey=ENV_KEY.startsWith('__')?null:ENV_KEY;
+  if(envUrl&&envKey){cfg={url:envUrl,key:envKey,via:'vercel-env'};}
+  if(!cfg){show('scr-setup');return;}
+  try{sb=window.supabase.createClient(cfg.url,cfg.key);}catch(e){err('setup-err','Could not start Supabase client. Check the URL and key.');show('scr-setup');return;}
+  show('scr-load');
+  try{
+    const{data,error}=await sb.auth.getSession();
+    if(error)throw error;
+    user=data.session?.user||null;
+    user?enterApp():show('scr-auth');
+  }catch(e){err('setup-err','Connection failed: '+(e.message||e));show('scr-setup');}
+}
+$('cfg-save').onclick=()=>{
+  const u=$('cfg-url').value.trim(),k=$('cfg-key').value.trim();
+  if(!u||!k){err('setup-err','Paste both the Project URL and the anon key.');return;}
+  err('setup-err','');cfg={url:u,key:k,via:'manual'};localStorage.setItem('dayjoy-cfg',JSON.stringify(cfg));boot();
+};
+$('cfg-reset').onclick=()=>{localStorage.removeItem('dayjoy-cfg');cfg=null;boot();};
+
+/* ---------- auth ---------- */
+let authMode='signin';
+function renderAuthMode(){
+  $('auth-title').textContent=authMode==='signin'?'Welcome back!':'Join '+brand+' 🎉';
+  $('auth-go').textContent=authMode==='signin'?'Sign in →':'Create account →';
+  $('auth-switch-q').textContent=authMode==='signin'?'New here?':'Have an account?';
+  $('auth-switch').textContent=authMode==='signin'?'Create account':'Sign in';
+}
+$('auth-switch').onclick=()=>{authMode=authMode==='signin'?'signup':'signin';err('auth-err','');renderAuthMode();};
+async function doAuth(){
+  err('auth-err','');$('auth-ok').style.display='none';
+  const email=$('auth-email').value.trim(),pass=$('auth-pass').value;
+  if(!email||!pass){err('auth-err','Enter your email and password.');return;}
+  $('auth-go').disabled=true;
+  try{
+    let res=authMode==='signin'?await sb.auth.signInWithPassword({email,password:pass}):await sb.auth.signUp({email,password:pass});
+    if(res.error)throw res.error;
+    if(authMode==='signup'&&!res.data.session){$('auth-ok').textContent='Account created! Now sign in.';$('auth-ok').style.display='block';authMode='signin';renderAuthMode();}
+    else{user=res.data.session?.user||(await sb.auth.getUser()).data.user;enterApp();}
+  }catch(e){err('auth-err',e.message||'Sign-in failed.');}
+  $('auth-go').disabled=false;
+}
+$('auth-go').onclick=doAuth;
+$('auth-pass').onkeydown=e=>{if(e.key==='Enter')doAuth();};
+$('btn-out').onclick=async()=>{await sb.auth.signOut();user=null;D={tasks:[],notes:[],sched:[],journal:[],sessions:[]};show('scr-auth');renderAuthMode();};
+
+/* ---------- app shell ---------- */
+function head(){
+  const h=new Date().getHours();
+  $('greet').innerHTML=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+'<br>'+esc((user?.email||'friend').split('@')[0]);
+  $('dateline').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  $('confetti').innerHTML=['🎉','✨','⭐','💛','🎊','💫'].map((c,i)=>`<span style="left:${8+i*15}%;top:${i%2?0:78}%">${c}</span>`).join('');
+}
+function go(v){document.querySelectorAll('#scr-app .view').forEach(x=>x.classList.remove('active'));$('v-'+v).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>go(b.dataset.v));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+async function enterApp(){renderAuthMode();show('scr-app');head();await loadAll();}
+
+/* ---------- data ---------- */
+async function loadAll(){
+  show('scr-load');
+  const uid=user.id;
+  const [t,n,s,j,ss]=await Promise.all([
+    sb.from('dayjoy_tasks').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('dayjoy_notes').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('dayjoy_schedule').select('*').eq('user_id',uid).order('time'),
+    sb.from('dayjoy_journal').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('dayjoy_sessions').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(20),
+  ]);
+  const probs=[t,n,s,j,ss].filter(r=>r.error);
+  if(probs.length){show('scr-app');err('setup-err','');alert('⚠️ Database error: '+probs[0].error.message+'\n\nHave you run the SQL from 🗄️ DB Setup in Supabase yet?');}
+  D={tasks:t.data||[],notes:n.data||[],sched:s.data||[],journal:j.data||[],sessions:ss.data||[]};
+  show('scr-app');renderTasks();renderSched();renderNotes();renderJournal();renderStats();drawT();
+}
+async function seedDemo(){
+  const uid=user.id;
+  await sb.from('dayjoy_tasks').insert([
+    {user_id:uid,title:'Morning workout — 30 min',category:'Health',done:true,color:'bg-mint'},
+    {user_id:uid,title:'Draft client proposal',category:'Work',done:false,color:'bg-coral'},
+    {user_id:uid,title:'Grocery shopping',category:'Personal',done:false,color:'bg-sky'}]);
+  await sb.from('dayjoy_notes').insert([{user_id:uid,title:'Welcome to '+brand+' 💛',body:'Your notes live here — safe in your own database.',color:3,emoji:5}]);
+  await sb.from('dayjoy_schedule').insert([{user_id:uid,title:'Team Sync',time:'09:30',color:'bg-lilac'},{user_id:uid,title:'Design Review',time:'15:00',color:'bg-peach'}]);
+  loadAll();
+}
+
+/* ---------- tasks ---------- */
+let tf='all';
+document.querySelectorAll('.fchip').forEach(c=>c.onclick=()=>{tf=c.dataset.f;document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('on'));c.classList.add('on');renderTasks();});
+function taskHTML(x){
+  return `<div class="task-row ${x.color}${x.done?' done':''}"><button class="cb" data-act="t" data-id="${x.id}">${x.done?'✓':''}</button><span class="t">${esc(x.title)}</span><span class="cat">${esc(x.category)}</span><button class="del" data-act="d" data-id="${x.id}">✕</button></div>`;
+}
+function renderTasks(){
+  const doneN=D.tasks.filter(t=>t.done).length;
+  $('home-tasks').innerHTML=D.tasks.slice(0,4).map(taskHTML).join('')||emptyHTML('No tasks yet — add one! 🎉',true);
+  const list=D.tasks.filter(x=>tf==='all'||(tf==='done'?x.done:!x.done));
+  $('task-list').innerHTML=list.map(taskHTML).join('')||emptyHTML('Nothing here. Enjoy the calm 😌',true);
+  const pct=D.tasks.length?Math.round(doneN/D.tasks.length*100):0;
+  $('daypct').textContent=pct+'%';
+  $('dayring').style.background=`conic-gradient(var(--mint) 0deg, var(--sun) ${pct*1.2}deg, var(--coral) ${pct*2.4}deg, var(--sky) ${pct*3.6}deg, #eee ${pct*3.6}deg)`;
+  bindRowButtons();
+}
+function emptyHTML(msg,seed){return `<div class="empty">${msg}${seed?'<br><button class="linkbtn" id="seed-btn" style="margin-top:8px">✨ Load sample day</button>':''}</div>`;}
+function bindRowButtons(){
+  document.querySelectorAll('[data-act]').forEach(b=>{b.onclick=async e=>{e.stopPropagation();
+    const id=b.dataset.id;
+    if(b.dataset.act==='t'){const x=D.tasks.find(t=>t.id===id);await sb.from('dayjoy_tasks').update({done:!x.done}).eq('id',id);}
+    else{await sb.from('dayjoy_tasks').delete().eq('id',id);}
+    loadAll();};});
+  const s=$('seed-btn');if(s)s.onclick=seedDemo;
+}
+async function addTask(){
+  const v=$('task-in').value.trim();if(!v)return;
+  await sb.from('dayjoy_tasks').insert({user_id:user.id,title:v,category:$('task-cat').value,done:false,color:PALETTE[D.tasks.length%PALETTE.length]});
+  $('task-in').value='';loadAll();
+}
+$('task-add').onclick=addTask;
+$('task-in').onkeydown=e=>{if(e.key==='Enter')addTask();};
+
+/* ---------- schedule ---------- */
+function renderSched(){
+  $('home-sched').innerHTML=D.sched.slice(0,4).map(e=>`<div class="chip ${e.color}"><div class="time">🕐 ${esc(e.time)}</div><div class="name">${esc(e.title)}</div></div>`).join('')||emptyHTML('A free day! Add something fun 🎈');
+  $('ev-list').innerHTML=D.sched.map(e=>`<div class="ev-row"><span class="dot ${e.color}"></span><span class="tm">${esc(e.time)}</span><span class="nm">${esc(e.title)}</span><button class="delx" data-ev="${e.id}">✕</button></div>`).join('')||emptyHTML('Nothing scheduled — bliss 😌');
+  document.querySelectorAll('[data-ev]').forEach(b=>b.onclick=async()=>{await sb.from('dayjoy_schedule').delete().eq('id',b.dataset.ev);loadAll();});
+}
+async function addEv(){
+  const n=$('ev-name').value.trim(),t=$('ev-time').value;if(!n||!t)return;
+  await sb.from('dayjoy_schedule').insert({user_id:user.id,title:n,time:t,color:PALETTE[D.sched.length%PALETTE.length]});
+  $('ev-name').value='';loadAll();
+}
+$('ev-add').onclick=addEv;
+
+/* ---------- notes ---------- */
+let editNote=null;
+function noteCard(n,full){
+  return `<div class="${full?'note-full':'note-card'}" style="background:${NOTE_BG[(n.color||0)%6]}" data-note="${n.id}"><div class="e" style="font-size:24px">${EMOJI[(n.emoji||0)%8]}</div><h4>${esc(n.title)}</h4><p>${esc(n.body)}</p></div>`;
+}
+function renderNotes(){
+  $('home-notes').innerHTML=D.notes.slice(0,3).map(n=>noteCard(n,false)).join('')||emptyHTML('No notes yet ✏️');
+  $('note-grid').innerHTML=D.notes.map(n=>noteCard(n,true)).join('')||emptyHTML('Tap “New Note” to capture your first idea 💡');
+  document.querySelectorAll('[data-note]').forEach(c=>c.onclick=()=>openNote(c.dataset.note));
+}
+$('note-new').onclick=()=>{editNote=null;$('nm-title').textContent='New note 📝';$('nm-name').value='';$('nm-body').value='';$('nm-del').style.display='none';$('note-modal').classList.add('open');};
+function openNote(id){const n=D.notes.find(x=>x.id===id);if(!n)return;editNote=id;
+  $('nm-title').textContent='Edit note ✏️';$('nm-name').value=n.title||'';$('nm-body').value=n.body||'';$('nm-del').style.display='block';$('note-modal').classList.add('open');}
+$('nm-close').onclick=()=>$('note-modal').classList.remove('open');
+$('note-modal').onclick=e=>{if(e.target.id==='note-modal')$('note-modal').classList.remove('open');};
+$('nm-save').onclick=async()=>{
+  const t=$('nm-name').value.trim()||'Untitled',b=$('nm-body').value.trim();
+  if(editNote)await sb.from('dayjoy_notes').update({title:t,body:b}).eq('id',editNote);
+  else await sb.from('dayjoy_notes').insert({user_id:user.id,title:t,body:b,color:D.notes.length%6,emoji:Math.floor(Math.random()*8)});
+  $('note-modal').classList.remove('open');loadAll();
+};
+$('nm-del').onclick=async()=>{if(editNote){await sb.from('dayjoy_notes').delete().eq('id',editNote);$('note-modal').classList.remove('open');loadAll();}};
+
+/* ---------- journal ---------- */
+let curMood='😊';
+document.querySelectorAll('.mood').forEach(m=>m.onclick=()=>{curMood=m.dataset.m;document.querySelectorAll('.mood').forEach(x=>x.classList.toggle('on',x===m));});
+function renderJournal(){
+  $('j-list').innerHTML=D.journal.map(j=>`<div class="j-entry"><div class="dh"><span class="dt">${new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span class="md">${esc(j.mood)}</span></div><p>${esc(j.text)}</p><button class="delj" data-j="${j.id}">Delete</button></div>`).join('')||emptyHTML('Your story starts here ✍️');
+  document.querySelectorAll('[data-j]').forEach(b=>b.onclick=async()=>{await sb.from('dayjoy_journal').delete().eq('id',b.dataset.j);loadAll();});
+  const last=D.journal[0],today=new Date().toDateString();
+  $('home-journal').innerHTML=last?`<h4>${esc(last.mood)} ${new Date(last.created_at).toDateString()===today?'Today':new Date(last.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</h4><p>${esc(last.text.slice(0,120))}${last.text.length>120?'…':''}</p>`:'<h4>💛 Start journaling</h4><p>Tap to write your first entry…</p>';
+}
+$('j-add').onclick=async()=>{
+  const t=$('j-in').value.trim();if(!t)return;
+  await sb.from('dayjoy_journal').insert({user_id:user.id,mood:curMood,text:t});
+  $('j-in').value='';loadAll();
+};
+
+/* ---------- timer ---------- */
+let T={dur:25*60,left:25*60,run:false,iv:null};
+const CIRC=2*Math.PI*80;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function drawT(){
+  $('t-time').textContent=fmt(T.left);
+  const r=$('t-ring');r.style.strokeDasharray=CIRC;r.style.strokeDashoffset=CIRC*(1-T.left/T.dur);
+  $('home-time').textContent=fmt(T.left);
+  const h=$('home-ring'),C2=2*Math.PI*62;h.style.strokeDasharray=C2;h.style.strokeDashoffset=C2*(1-T.left/T.dur);
+}
+document.querySelectorAll('.tpre').forEach(p=>p.onclick=()=>{document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));p.classList.add('on');T.dur=T.left=+p.dataset.min*60;stopTick(false);drawT();});
+async function tick(){
+  T.left--;drawT();
+  if(T.left<=0){stopTick(false);T.left=T.dur;
+    await sb.from('dayjoy_sessions').insert({user_id:user.id,minutes:Math.round(T.dur/60)});
+    if(navigator.vibrate)navigator.vibrate(200);
+    alert('🎉 Focus session complete! Take a break, you earned it.');loadAll();drawT();}
+}
+function stopTick(){T.run=false;clearInterval(T.iv);$('t-toggle').textContent='▶ Start';$('t-state').textContent='Paused';}
+$('t-toggle').onclick=()=>{if(T.run){stopTick();}else{T.run=true;$('t-toggle').textContent='⏸ Pause';$('t-state').textContent='Focusing… 🔥';T.iv=setInterval(tick,1000);}};
+$('t-reset').onclick=()=>{T.left=T.dur;stopTick();drawT();};
+function renderStats(){
+  const today=new Date().toDateString();
+  const mins=D.sessions.filter(s=>new Date(s.created_at).toDateString()===today).reduce((a,s)=>a+(s.minutes||0),0);
+  $('st-focus').textContent=mins+'m';$('st-sess').textContent=D.sessions.length;
+  $('sess-log').innerHTML=D.sessions.slice(0,8).map(s=>`<div class="log-row"><span>🍅 ${s.minutes} min focus</span><span style="color:var(--ink-soft)">${new Date(s.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</span></div>`).join('')||emptyHTML('No sessions yet — start your first focus! 🍅');
+}
+
+renderAuthMode();boot();
+</script>
+</body>
+</html>
