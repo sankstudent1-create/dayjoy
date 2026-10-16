@@ -11,7 +11,7 @@ const balooB = fs.readFileSync('fonts/baloo2-bold.ttf').toString('base64');
 html = html.split('/*__BALOO_FONTS__*/').join(`const BALOO_R="${balooR}";\nconst BALOO_B="${balooB}";`);
 fs.mkdirSync('dist', { recursive: true });
 fs.writeFileSync(path.join('dist', 'index.html'), html);
-for (const img of ['mascot-sun.webp', 'mascot-clock.webp', 'favicon.png', 'favicon.ico', 'apple-touch-icon.png']) {
+for (const img of ['mascot-sun.png', 'mascot-clock.png', 'favicon.png', 'favicon.ico', 'apple-touch-icon.png']) {
   if (fs.existsSync(img)) fs.copyFileSync(img, path.join('dist', img));
 }
 console.log('Built dist/ with',
