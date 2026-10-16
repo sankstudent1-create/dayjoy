@@ -249,9 +249,38 @@ body[data-theme="midnight"] .ghostbtn,body[data-theme="midnight"] .fchip,body[da
 body[data-theme="midnight"] .searchbar input{background:none!important;border:none!important}
 body[data-theme="midnight"] .datenav button{background:#232A52;color:#FFF6EA}
 body[data-theme="midnight"] .mode-seg{background:rgba(0,0,0,.3)}
-body[data-theme="midnight"] .note-card p,body[data-theme="midnight"] .note-full p,body[data-theme="midnight"] .journal-card p,body[data-theme="midnight"] .j-entry p{color:#C9CFEC}
 body[data-theme="midnight"] .j-entry{background:#2D3560}
+body[data-theme="midnight"] .j-entry p{color:#C9CFEC}
 body[data-theme="midnight"] .xfmt.on{border-color:var(--coral);background:#4A2E35}
+/* dark cards keep cream text */
+body[data-theme="midnight"] .habit-card,body[data-theme="midnight"] .ev-row,body[data-theme="midnight"] .log-row,body[data-theme="midnight"] .stat,body[data-theme="midnight"] .moodtrend,body[data-theme="midnight"] .chart,body[data-theme="midnight"] .addcard,body[data-theme="midnight"] .card,body[data-theme="midnight"] .xcard{background:#2D3560}
+body[data-theme="midnight"] .habit-card .ht,body[data-theme="midnight"] .ev-row .tm,body[data-theme="midnight"] .ev-row .nm,body[data-theme="midnight"] .stat .v{color:#FFF6EA}
+body[data-theme="midnight"] .streak-pill{background:#2D3560;color:#FFF6EA}
+body[data-theme="midnight"] .dayring .inner{background:#2D3560}
+body[data-theme="midnight"] .step p{color:#A7AED4}
+/* light pastel surfaces keep dark ink */
+body[data-theme="midnight"] .focus h3,body[data-theme="midnight"] .ringtxt .t{color:#1E2A5A}
+body[data-theme="midnight"] .ringtxt .s{color:#5B6480}
+body[data-theme="midnight"] .ring-fg{stroke:#1E2A5A}
+body[data-theme="midnight"] .promptbar{color:#1E2A5A}
+body[data-theme="midnight"] .perk{color:#1E2A5A}
+body[data-theme="midnight"] .habit-card .streak{color:#1E2A5A}
+body[data-theme="midnight"] .journal-card h4{color:#1E2A5A}
+body[data-theme="midnight"] .note-card h4,body[data-theme="midnight"] .note-full h4{color:#1E2A5A}
+/* buttons that used --ink bg */
+body[data-theme="midnight"] .seg button.on,body[data-theme="midnight"] .fchip.on,body[data-theme="midnight"] .tpre.on,body[data-theme="midnight"] .mode-seg button.on{background:var(--coral);color:#fff}
+body[data-theme="midnight"] .addbtn{background:var(--coral)}
+body[data-theme="midnight"] .navbtn.on .pill{background:rgba(255,123,123,.28)}
+/* settings banner */
+.setbanner{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--coral-soft),var(--sun-soft));border-radius:22px;padding:16px;box-shadow:var(--shadow);margin-bottom:4px}
+.setbanner .avatar{border:3px solid #fff}
+.setid{min-width:0;flex:1}
+.setid h3{font-size:16px;word-break:break-all}
+.memberpill{background:#fff;border-radius:99px;padding:3px 12px;font-size:11.5px;font-weight:800;color:var(--ink-soft);display:inline-block;margin-top:5px}
+.setmascot{width:62px;height:62px;object-fit:contain;flex-shrink:0;animation:bob 3.2s ease-in-out infinite}
+body[data-theme="midnight"] .setbanner{background:linear-gradient(135deg,#4A2E35,#4A3D28)}
+.tprev{width:100%;height:30px;border-radius:12px;border:2px solid rgba(30,42,90,.14);margin-bottom:8px}
+.setdiv{height:3px;background:var(--bg);border-radius:99px;margin:16px 0 4px}
 /* modal */
 .modal{position:fixed;inset:0;background:rgba(30,42,90,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 .modal.open{display:flex}
@@ -431,22 +460,23 @@ body[data-theme="midnight"] .xfmt.on{border-color:var(--coral);background:#4A2E3
 </div></div>
 
 <div class="modal" id="settings-modal"><div class="sheet">
-  <div class="xhead"><div class="avatar" id="set-avatar">D</div><div><h3 id="set-email">…</h3><p id="set-since">…</p></div></div>
+  <div class="setbanner"><div class="avatar" id="set-avatar">D</div><div class="setid"><h3 id="set-email">…</h3><span class="memberpill" id="set-since">…</span></div><img class="setmascot" src="mascot-sun.png" alt=""></div>
   <div class="xlabel">Your stats</div>
   <div class="setgrid" id="set-stats"></div>
+  <div class="setdiv"></div>
   <div class="xlabel">Appearance</div>
   <div class="xformats" id="theme-pick">
-    <button class="xfmt" data-theme="cream"><span class="xe">🍦</span><b>Cream</b><small>Cozy & warm</small></button>
-    <button class="xfmt" data-theme="white"><span class="xe">⬜</span><b>White</b><small>Clean & bright</small></button>
-    <button class="xfmt" data-theme="midnight"><span class="xe">🌙</span><b>Midnight</b><small>Calm & dark</small></button>
+    <button class="xfmt" data-theme="cream"><span class="tprev" style="background:#FFF6EA"></span><b>Cream</b><small>Cozy & warm</small></button>
+    <button class="xfmt" data-theme="white"><span class="tprev" style="background:#FFFFFF"></span><b>White</b><small>Clean & bright</small></button>
+    <button class="xfmt" data-theme="midnight"><span class="tprev" style="background:#1F2548"></span><b>Midnight</b><small>Calm & dark</small></button>
   </div>
   <div class="xlabel">Sounds</div>
   <label class="xcard" style="--xc:#A78BFA"><input type="checkbox" id="snd-tgl" checked><span class="xe">🔔</span><span class="xt">Playful sounds<small>Pops & chimes around the app</small></span><span class="xcheck">✓</span></label>
   <div class="xlabel">PDF theme</div>
   <div class="xformats" id="pdftheme-pick">
-    <button class="xfmt" data-ptheme="cream"><span class="xe">🍦</span><b>Cream</b><small>Warm paper</small></button>
-    <button class="xfmt" data-ptheme="white"><span class="xe">⬜</span><b>White</b><small>Crisp & clean</small></button>
-    <button class="xfmt" data-ptheme="midnight"><span class="xe">🌙</span><b>Midnight</b><small>Bold & dark</small></button>
+    <button class="xfmt" data-ptheme="cream"><span class="tprev" style="background:#FFF6EA"></span><b>Cream</b><small>Warm paper</small></button>
+    <button class="xfmt" data-ptheme="white"><span class="tprev" style="background:#FFFFFF"></span><b>White</b><small>Crisp & clean</small></button>
+    <button class="xfmt" data-ptheme="midnight"><span class="tprev" style="background:#1F2548"></span><b>Midnight</b><small>Bold & dark</small></button>
   </div>
   <div class="row" style="margin-top:14px"><button class="bigbtn" id="set-export">📤 Open Export Studio</button></div>
   <div class="row" style="margin-top:10px"><button class="ghostbtn" id="set-out" style="flex:1">Sign out</button><button class="ghostbtn" id="set-close" style="flex:1">Close</button></div>
@@ -635,8 +665,8 @@ function openSettings(){
   try{$('set-since').textContent='Member since '+new Date(user.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'});}catch(e){$('set-since').textContent='DayJoy member';}
   const mins=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
   const doneN=D.tasks.filter(t=>t.done).length;
-  const stats=[[calcStreak()+'','day streak'],[doneN+'/'+D.tasks.length,'tasks done'],[mins+'m','focused'],[D.habits.length,'habits'],[D.journal.length,'journal'],[D.notes.length,'notes']];
-  $('set-stats').innerHTML=stats.map(s=>`<div class="stat"><div class="v">${s[0]}</div><div class="l">${s[1]}</div></div>`).join('');
+  const stats=[[calcStreak()+'','day streak','#C69400'],[doneN+'/'+D.tasks.length,'tasks done','#FF7B7B'],[mins+'m','focused','#1d9e6c'],[D.habits.length,'habits','#C69400'],[D.journal.length,'journal','#FF9F6B'],[D.notes.length,'notes','#A78BFA']];
+  $('set-stats').innerHTML=stats.map(s=>`<div class="stat"><div class="v" style="color:${s[2]}">${s[0]}</div><div class="l">${s[1]}</div></div>`).join('');
   $('snd-tgl').checked=soundOn;
   applyTheme();applyPTheme();
   $('settings-modal').classList.add('open');
