@@ -198,16 +198,17 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .j-entry .delj{color:var(--coral)}.j-entry .editj{color:var(--sky)}
 .j-entry .wc{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-soft)}
 textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:14px;font-family:inherit;font-weight:600;font-size:15px;min-height:110px;resize:vertical;background:#fff;color:var(--ink);outline:none}
-.wheel{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:12px}
-.wcol{width:68px;height:132px;overflow:hidden;border-radius:18px;background:#fff;border:3px solid var(--ink);position:relative;touch-action:none;cursor:grab}
+.wheel{display:flex;gap:4px;justify-content:center;align-items:stretch;margin-top:12px;position:relative}
+.wheel::before{content:'';position:absolute;left:10px;right:10px;top:50%;transform:translateY(-50%);height:52px;background:#1E2A5A;border-radius:18px;box-shadow:var(--shadow)}
+.wcol{width:92px;height:156px;overflow:hidden;position:relative;touch-action:none;cursor:grab;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 28%,#000 72%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 28%,#000 72%,transparent)}
 .wcol:active{cursor:grabbing}
-.wlist{will-change:transform}
-.witem{height:44px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;color:var(--ink-soft);user-select:none;-webkit-user-select:none}
-.witem.sel{color:var(--ink);font-size:23px;background:var(--sun-soft);border-radius:14px;margin:0 6px}
+.wlist{will-change:transform;position:relative;z-index:1}
+.witem{height:52px;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:800;font-size:20px;color:var(--ink-soft);user-select:none;-webkit-user-select:none}
+.witem small{font-size:14px;font-weight:700}
+.witem.sel{color:#fff;font-size:26px}
 .witem.pad{pointer-events:none}
-.wsep{font-weight:900;font-size:22px;color:var(--ink-soft)}
-body[data-theme="midnight"] .wcol{background:#232A52;border-color:#8B93C4}
-body[data-theme="midnight"] .witem.sel{background:rgba(255,209,102,.22)}
+body[data-theme="midnight"] .wheel::before{background:#FFF6EA}
+body[data-theme="midnight"] .witem.sel{color:#1E2A5A}
 .mode-seg{display:flex;background:rgba(255,255,255,.7);border-radius:99px;padding:4px;width:fit-content;margin:0 auto 4px}
 .mode-seg button{border:none;background:none;font-family:inherit;font-weight:800;padding:8px 22px;border-radius:99px;cursor:pointer;color:var(--ink-soft);font-size:14px}
 .mode-seg button.on{background:var(--ink);color:#fff}
@@ -450,7 +451,7 @@ body[data-theme="midnight"] .tomdot{background:rgba(255,255,255,.14)}
           <div class="mode-seg"><button id="mode-focus" class="on">🍅 Focus</button><button id="mode-short">☕ Short</button><button id="mode-long">🌴 Long</button></div>
           <div class="ringwrap" style="width:190px;height:190px"><svg id="t-svg" width="190" height="190"><circle class="ring-bg" cx="95" cy="95" r="80"/><circle class="ring-fg" id="t-ring" cx="95" cy="95" r="80"/><circle id="t-knob" r="11" fill="#1E2A5A" stroke="#fff" stroke-width="4" style="filter:drop-shadow(0 2px 3px rgba(30,42,90,.3))"/></svg>
           <div class="ringtxt" style="pointer-events:none"><div class="t" id="t-time" style="font-size:44px">25:00</div><div class="s" id="t-state">Paused</div></div></div>
-          <div class="wheel" id="t-wheel"><div class="wcol" data-unit="h"><div class="wlist" id="wl-h"></div></div><span class="wsep">:</span><div class="wcol" data-unit="m"><div class="wlist" id="wl-m"></div></div><span class="wsep">:</span><div class="wcol" data-unit="s"><div class="wlist" id="wl-s"></div></div></div>
+          <div class="wheel" id="t-wheel"><div class="wcol" data-unit="h"><div class="wlist" id="wl-h"></div></div><div class="wcol" data-unit="m"><div class="wlist" id="wl-m"></div></div><div class="wcol" data-unit="s"><div class="wlist" id="wl-s"></div></div></div>
           <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="bigbtn" id="t-toggle" style="width:auto">▶ Start</button><button class="ghostbtn" id="t-reset">Reset</button></div>
           <div class="tomdots" id="tom-dots"></div>
           <label class="autorow"><span class="switch"><input type="checkbox" id="auto-break"><span class="sl"></span></span>Auto-start breaks</label>
@@ -1028,11 +1029,12 @@ $('mode-short').onclick=()=>setMode('short');
 $('mode-long').onclick=()=>setMode('long');
 /* iOS-style spin wheel for HH:MM:SS */
 const WHEEL={h:{max:8,val:0,y:0},m:{max:59,val:25,y:0},s:{max:59,val:0,y:0}};
-const IH=44;
+const IH=52;
+const WUNIT={h:['hour','hours'],m:['min','min'],s:['sec','sec']};
 function wheelBuild(unit){
   const w=WHEEL[unit],el=$('wl-'+unit);
   let html='<div class="witem pad"></div>';
-  for(let i=0;i<=w.max;i++)html+=`<div class="witem" data-v="${i}">${String(i).padStart(2,'0')}</div>`;
+  for(let i=0;i<=w.max;i++)html+=`<div class="witem" data-v="${i}">${i}<small>${i===1?WUNIT[unit][0]:WUNIT[unit][1]}</small></div>`;
   el.innerHTML=html+'<div class="witem pad"></div>';
   wheelTo(unit,w.val,false);
 }
