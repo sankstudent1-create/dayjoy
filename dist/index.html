@@ -303,7 +303,6 @@ body[data-theme="midnight"] .setbanner{background:linear-gradient(135deg,#4A2E35
 .switch input:checked + .sl{background:var(--mint)}
 .switch input:checked + .sl::after{left:25px}
 .goalbar{height:16px;background:rgba(30,42,90,.1);border-radius:99px;margin:14px 4px 6px;overflow:hidden}.gfill{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--sky));border-radius:99px;transition:width .5s}
-#t-knob{transition:cx .15s,cy .15s}
 .goalline{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;color:var(--ink-soft)}
 .goalline #goal-txt{margin-left:auto}
 body[data-theme="midnight"] .speech{background:#2D3560}
@@ -449,7 +448,7 @@ body[data-theme="midnight"] .tomdot{background:rgba(255,255,255,.14)}
         <div class="focus"><div class="toast" id="t-toast"></div><img class="clockmascot" src="mascot-clock.png" alt="Focus buddy">
           <div><span class="speech" id="t-speech">Let's focus! 🍅</span></div>
           <div class="mode-seg"><button id="mode-focus" class="on">🍅 Focus</button><button id="mode-short">☕ Short</button><button id="mode-long">🌴 Long</button></div>
-          <div class="ringwrap" style="width:190px;height:190px"><svg id="t-svg" width="190" height="190"><circle class="ring-bg" cx="95" cy="95" r="80"/><circle class="ring-fg" id="t-ring" cx="95" cy="95" r="80"/><circle id="t-knob" r="11" fill="#1E2A5A" stroke="#fff" stroke-width="4" style="filter:drop-shadow(0 2px 3px rgba(30,42,90,.3))"/></svg>
+          <div class="ringwrap" style="width:190px;height:190px"><svg id="t-svg" width="190" height="190"><circle class="ring-bg" cx="95" cy="95" r="80"/><circle class="ring-fg" id="t-ring" cx="95" cy="95" r="80"/></svg>
           <div class="ringtxt" style="pointer-events:none"><div class="t" id="t-time" style="font-size:44px">25:00</div><div class="s" id="t-state">Paused</div></div></div>
           <div class="wheel" id="t-wheel"><div class="wcol" data-unit="h"><div class="wlist" id="wl-h"></div></div><div class="wcol" data-unit="m"><div class="wlist" id="wl-m"></div></div><div class="wcol" data-unit="s"><div class="wlist" id="wl-s"></div></div></div>
           <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="bigbtn" id="t-toggle" style="width:auto">▶ Start</button><button class="ghostbtn" id="t-reset">Reset</button></div>
@@ -1003,8 +1002,6 @@ function drawT(){
   $('t-time').textContent=fmt(T.left);
   const frac=T.dur>0?Math.max(0,Math.min(1,T.left/T.dur)):0;
   const r=$('t-ring');r.style.strokeDasharray=CIRC;r.style.strokeDashoffset=CIRC*(1-frac);
-  const a=frac*Math.PI*2;
-  const knob=$('t-knob');knob.setAttribute('cx',95+80*Math.sin(a));knob.setAttribute('cy',95-80*Math.cos(a));
   $('home-time').textContent=fmt(T.left);
   const hr=$('home-ring'),C2=2*Math.PI*62;hr.style.strokeDasharray=C2;hr.style.strokeDashoffset=C2*(1-frac);
 }
