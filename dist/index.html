@@ -296,8 +296,10 @@ body[data-theme="midnight"] .setbanner{background:linear-gradient(135deg,#4A2E35
 .sl::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
 .switch input:checked + .sl{background:var(--mint)}
 .switch input:checked + .sl::after{left:25px}
-.goalbar{height:16px;background:rgba(30,42,90,.1);border-radius:99px;margin:14px 4px 6px;overflow:hidden}
-.gfill{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--sky));border-radius:99px;transition:width .5s}
+.goalbar{height:16px;background:rgba(30,42,90,.1);border-radius:99px;margin:14px 4px 6px;overflow:hidden}.gfill{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--sky));border-radius:99px;transition:width .5s}
+#t-svg{touch-action:none;cursor:grab}
+#t-svg:active{cursor:grabbing}
+#t-knob{transition:cx .15s,cy .15s}
 .goalline{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;color:var(--ink-soft)}
 .goalline #goal-txt{margin-left:auto}
 body[data-theme="midnight"] .speech{background:#2D3560}
@@ -441,8 +443,9 @@ body[data-theme="midnight"] .tomdot{background:rgba(255,255,255,.14)}
         <div class="focus"><div class="toast" id="t-toast"></div><img class="clockmascot" src="mascot-clock.png" alt="Focus buddy">
           <div><span class="speech" id="t-speech">Let's focus! 🍅</span></div>
           <div class="mode-seg"><button id="mode-focus" class="on">🍅 Focus</button><button id="mode-short">☕ Short</button><button id="mode-long">🌴 Long</button></div>
-          <div class="ringwrap" style="width:190px;height:190px"><svg width="190" height="190"><circle class="ring-bg" cx="95" cy="95" r="80"/><circle class="ring-fg" id="t-ring" cx="95" cy="95" r="80"/></svg>
-          <div class="ringtxt"><div class="t" id="t-time" style="font-size:44px">25:00</div><div class="s" id="t-state">Paused</div></div></div>
+          <div class="ringwrap" style="width:190px;height:190px"><svg id="t-svg" width="190" height="190"><circle class="ring-bg" cx="95" cy="95" r="80"/><circle class="ring-fg" id="t-ring" cx="95" cy="95" r="80"/><circle id="t-knob" r="11" fill="#1E2A5A" stroke="#fff" stroke-width="4" style="filter:drop-shadow(0 2px 3px rgba(30,42,90,.3))"/></svg>
+          <div class="ringtxt" style="pointer-events:none"><div class="t" id="t-time" style="font-size:44px">25:00</div><div class="s" id="t-state">Paused</div></div></div>
+          <p style="text-align:center;font-weight:700;font-size:12.5px;color:var(--ink-soft);margin-top:2px">💡 Drag the ring to set minutes</p>
           <div class="timer-presets"><button class="tpre" data-min="15">15m</button><button class="tpre on" data-min="25">25m</button><button class="tpre" data-min="50">50m</button></div>
           <div class="customrow"><span>Custom</span><input id="t-custom" type="number" min="1" max="180" placeholder="min"><button class="ghostbtn" id="t-cset" style="padding:8px 16px;font-size:13px">Set</button></div>
           <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="bigbtn" id="t-toggle" style="width:auto">▶ Start</button><button class="ghostbtn" id="t-reset">Reset</button></div>
@@ -963,9 +966,12 @@ const autoBreak=()=>localStorage.getItem('dayjoy-auto-break')==='1';
 function todaySessions(){const td=todayISO();return D.sessions.filter(s=>dayISO(new Date(s.created_at))===td);}
 function drawT(){
   $('t-time').textContent=fmt(T.left);
-  const r=$('t-ring');r.style.strokeDasharray=CIRC;r.style.strokeDashoffset=CIRC*(1-T.left/T.dur);
+  const frac=T.dur>0?Math.max(0,Math.min(1,T.left/T.dur)):0;
+  const r=$('t-ring');r.style.strokeDasharray=CIRC;r.style.strokeDashoffset=CIRC*(1-frac);
+  const a=frac*Math.PI*2;
+  const knob=$('t-knob');knob.setAttribute('cx',95+80*Math.sin(a));knob.setAttribute('cy',95-80*Math.cos(a));
   $('home-time').textContent=fmt(T.left);
-  const hr=$('home-ring'),C2=2*Math.PI*62;hr.style.strokeDasharray=C2;hr.style.strokeDashoffset=C2*(1-T.left/T.dur);
+  const hr=$('home-ring'),C2=2*Math.PI*62;hr.style.strokeDasharray=C2;hr.style.strokeDashoffset=C2*(1-frac);
 }
 const SPEECH={focus:['Let\u2019s focus! \U0001F345','Ready when you are \u2728'],'focusing':'Stay with it\u2026 you\u2019ve got this \U0001F4AA','short':'Break time! Stretch \u2615','long':'Long break \u2014 you earned it \U0001F334','done':'Session complete! \U0001F389'};
 function say(k){$('t-speech').textContent=Array.isArray(SPEECH[k])?SPEECH[k][Math.floor(Math.random()*SPEECH[k].length)]:SPEECH[k];}
@@ -995,8 +1001,37 @@ function setCustom(){const v=+$('t-custom').value;
   else toast('Enter 1\u2013180 minutes');}
 $('t-cset').onclick=setCustom;
 $('t-custom').onkeydown=e=>{if(e.key==='Enter')setCustom();};
+/* round slider: drag the ring to set minutes */
+const tsvg=$('t-svg');
+let dragging=false;
+function ringMinutes(e){
+  const r=tsvg.getBoundingClientRect();
+  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  let a=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI;
+  a=(a+90+360)%360;
+  return Math.min(180,Math.max(1,Math.round(a/360*180)));
+}
+function ringSet(e){
+  const m=ringMinutes(e);
+  document.querySelectorAll('.tpre').forEach(x=>x.classList.remove('on'));
+  T.dur=T.left=m*60;drawT();
+  const r=tsvg.getBoundingClientRect();
+  const a=Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2));
+  const knob=$('t-knob');
+  knob.setAttribute('cx',95+80*Math.cos(a));knob.setAttribute('cy',95+80*Math.sin(a));
+  say('focus');
+}
+tsvg.addEventListener('pointerdown',e=>{
+  if(T.run){toast('Pause first to change time \u23F8');return;}
+  dragging=true;try{tsvg.setPointerCapture(e.pointerId);}catch(_){}
+  ringSet(e);e.preventDefault();
+});
+tsvg.addEventListener('pointermove',e=>{if(dragging)ringSet(e);});
+tsvg.addEventListener('pointerup',()=>dragging=false);
+tsvg.addEventListener('pointercancel',()=>dragging=false);
 function startTimer(){
   if(T.run)return;
+  if(T.left<=0)T.left=T.dur;
   try{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}
   T.run=true;T.endAt=Date.now()+T.left*1000;
   $('t-toggle').textContent='\u23F8 Pause';
@@ -1011,6 +1046,8 @@ function tick(){
   if(T.left<=0)finishTimer();
 }
 async function finishTimer(){
+  if(T.finishing)return;
+  T.finishing=true;
   pauseTimer();
   if(navigator.vibrate)navigator.vibrate([120,60,120]);
   if(T.mode==='focus'){
@@ -1033,6 +1070,7 @@ async function finishTimer(){
     setMode('focus');
   }
   T.left=T.dur;drawT();
+  T.finishing=false;
 }
 $('t-toggle').onclick=()=>{T.run?pauseTimer():startTimer();};
 $('t-reset').onclick=()=>{pauseTimer();T.left=T.dur;drawT();say(T.mode==='focus'?'focus':T.mode);};
