@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --bg:#FFF6EA; --ink:#1E2A5A; --ink-soft:#5B6480;
@@ -48,7 +49,6 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .bigbtn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--coral-dark)}
 .bigbtn:disabled{opacity:.6}
 .ghostbtn{background:#fff;border:2px solid var(--ink);color:var(--ink);border-radius:99px;padding:10px 26px;font-weight:800;font-family:inherit;cursor:pointer}
-.linkbtn{background:none;border:none;color:var(--sky);font-weight:800;font-family:inherit;font-size:14px;cursor:pointer;text-decoration:underline}
 .err{background:var(--coral-soft);color:#b33;border-radius:14px;padding:10px 14px;font-weight:700;margin:10px 0;display:none}
 .okmsg{background:var(--mint-soft);color:#1a7a4e;border-radius:14px;padding:10px 14px;font-weight:700;margin:10px 0;display:none}
 .auth-perks{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
@@ -61,9 +61,6 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .step{background:#fff;border-radius:20px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow)}
 .step h3{font-size:16px;font-weight:800;margin-bottom:6px}
 .step p{font-size:14px;font-weight:600;color:var(--ink-soft);line-height:1.5}
-.brandbar{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap}
-.brandpick{border:3px solid var(--ink);background:#fff;border-radius:99px;padding:8px 20px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--ink)}
-.brandpick.on{background:var(--ink);color:#fff}
 .topbar{padding:26px 22px 6px;display:flex;justify-content:space-between;align-items:flex-start}
 .greet h1{font-size:29px;font-weight:800;line-height:1.1;letter-spacing:-.5px}
 .greet p{color:var(--ink-soft);font-weight:600;font-size:14px;margin-top:4px}
@@ -81,9 +78,17 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .section-head .ico{font-size:20px}
 .section-head .more{margin-left:auto;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;background:none;border:none;font-family:inherit}
 .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+/* ---------- playful checkboxes ---------- */
+.cb,.dotbtn{position:relative;width:38px;height:38px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  border:4px solid var(--coral);background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#fff;font-family:inherit;transition:transform .15s;overflow:visible}
+.cb:active,.dotbtn:active{transform:scale(.88)}
+.cb.done,.dotbtn.hit{background:linear-gradient(135deg,var(--coral),var(--peach));border-color:var(--coral-dark);animation:popcheck .35s}
+@keyframes popcheck{0%{transform:scale(.6)}55%{transform:scale(1.25) rotate(-8deg)}100%{transform:scale(1)}}
+.cb .burst{position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;pointer-events:none;animation:burst .55s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--bx),var(--by)) scale(.2);opacity:0}}
 /* tasks */
 .task-row{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:20px;margin-bottom:10px;color:#fff;font-weight:700;box-shadow:0 4px 0 rgba(30,42,90,.10);position:relative}
-.task-row .cb{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);border:none;flex-shrink:0;cursor:pointer;font-size:17px;color:var(--ink);display:flex;align-items:center;justify-content:center}
 .task-row .tt{flex:1;min-width:0}
 .task-row .t{font-size:15.5px;line-height:1.25;display:block}
 .task-row.done .t{text-decoration:line-through;opacity:.75}
@@ -117,13 +122,15 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .habit-card .ht{flex:1;font-size:16px;font-weight:800}
 .habit-card .streak{font-weight:800;font-size:14px;background:var(--sun-soft);border-radius:99px;padding:4px 12px}
 .habit-card .hdel{background:none;border:none;color:var(--coral);font-weight:800;cursor:pointer;font-size:16px;font-family:inherit}
-.dotstrip{display:flex;gap:8px;justify-content:space-between}
+.dotstrip{display:flex;gap:6px;justify-content:space-between}
 .dotday{display:flex;flex-direction:column;align-items:center;gap:4px}
 .dotday .dl{font-size:10px;font-weight:800;color:var(--ink-soft)}
-.dotbtn{width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);background:#fff;font-size:16px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
-.dotbtn.hit{background:var(--mint);border-color:var(--mint);color:#fff}
-.dotbtn.today{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-soft)}
+.dotbtn.hit{background:linear-gradient(135deg,var(--mint),#4FD1A5);border-color:#1d9e6c}
+.dotbtn.today{box-shadow:0 0 0 3px var(--sun-soft)}
 /* schedule */
+.datenav{display:flex;align-items:center;gap:10px;background:#fff;border-radius:99px;padding:8px 10px;box-shadow:var(--shadow);margin-bottom:14px;width:fit-content}
+.datenav button{border:none;background:var(--bg);width:36px;height:36px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;color:var(--ink)}
+.datenav .ds{font-weight:800;font-size:15px;min-width:150px;text-align:center}
 .chips{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{min-width:118px;border-radius:22px;padding:14px 12px;color:#fff;font-weight:700;box-shadow:0 4px 0 rgba(30,42,90,.10);flex-shrink:0}
@@ -153,13 +160,19 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 /* notes */
 .notes-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
 .notes-row::-webkit-scrollbar{display:none}
-.note-card{min-width:150px;max-width:170px;border-radius:22px;padding:16px 14px;color:var(--ink);box-shadow:0 4px 0 rgba(30,42,90,.10);flex-shrink:0;cursor:pointer}
+.note-card{min-width:150px;max-width:170px;border-radius:22px;padding:16px 14px;color:var(--ink);box-shadow:0 4px 0 rgba(30,42,90,.10);flex-shrink:0;cursor:pointer;position:relative}
 .note-card .e{font-size:26px}.note-card h4{font-size:16px;font-weight:800;margin:6px 0 4px}
 .note-card p{font-size:12.5px;font-weight:600;color:#3c4670;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.note-card .pinbadge{position:absolute;top:10px;right:12px;font-size:16px}
 .notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.note-full{border-radius:22px;padding:16px;box-shadow:0 4px 0 rgba(30,42,90,.10);cursor:pointer;min-height:130px}
-.note-full h4{font-size:15px;font-weight:800;margin-bottom:4px}
+.note-full{border-radius:22px;padding:16px;box-shadow:0 4px 0 rgba(30,42,90,.10);cursor:pointer;min-height:130px;position:relative}
+.note-full h4{font-size:15px;font-weight:800;margin-bottom:4px;padding-right:22px}
 .note-full p{font-size:12.5px;font-weight:600;color:#3c4670;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.note-full .pinbadge{position:absolute;top:12px;right:12px;font-size:16px}
+.note-full .edited{font-size:10.5px;font-weight:700;color:#8a93ad;margin-top:8px}
+.colorrow{display:flex;gap:10px;margin:4px 0 12px}
+.cdot{width:38px;height:38px;border-radius:50%;cursor:pointer;border:3px solid transparent}
+.cdot.on{border-color:var(--ink);transform:scale(1.12)}
 /* journal */
 .journal-card{background:var(--sun-soft);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);cursor:pointer}
 .journal-card h4{font-size:17px;font-weight:800}
@@ -167,6 +180,8 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .moods{display:flex;gap:10px;margin:12px 0}
 .mood{font-size:30px;cursor:pointer;filter:grayscale(1);opacity:.5;transition:.2s;border:none;background:none}
 .mood.on{filter:none;opacity:1;transform:scale(1.25)}
+.promptbar{display:flex;gap:8px;align-items:center;background:var(--lilac-soft);border-radius:16px;padding:10px 14px;margin-bottom:10px;font-size:13.5px;font-weight:700}
+.promptbar button{margin-left:auto;flex-shrink:0}
 .moodtrend{display:flex;gap:6px;align-items:center;background:#fff;border-radius:99px;padding:8px 16px;box-shadow:var(--shadow);width:fit-content;margin-bottom:12px}
 .moodtrend span{font-size:20px}
 .moodtrend .ml{font-size:12px;font-weight:800;color:var(--ink-soft);margin-right:4px}
@@ -175,7 +190,10 @@ body{font-family:'Baloo 2','Chalkboard SE',system-ui,sans-serif;background:var(-
 .j-entry .dt{font-size:13px;font-weight:800;color:var(--ink-soft)}
 .j-entry .md{font-size:24px}
 .j-entry p{font-size:14.5px;font-weight:600;line-height:1.55;color:#2c3554;white-space:pre-wrap}
-.j-entry .delj{background:none;border:none;color:var(--coral);font-weight:800;cursor:pointer;font-family:inherit;font-size:13px}
+.j-entry .jfoot{display:flex;gap:12px;margin-top:8px;align-items:center}
+.j-entry .delj,.j-entry .editj{background:none;border:none;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px}
+.j-entry .delj{color:var(--coral)}.j-entry .editj{color:var(--sky)}
+.j-entry .wc{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-soft)}
 textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:14px;font-family:inherit;font-weight:600;font-size:15px;min-height:110px;resize:vertical;background:#fff;color:var(--ink);outline:none}
 .timer-presets{display:flex;gap:8px;justify-content:center;margin:12px 0;flex-wrap:wrap}
 .tpre{border:2px solid var(--ink);background:#fff;border-radius:99px;padding:8px 18px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--ink)}
@@ -187,6 +205,11 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
 .stat{flex:1;background:#fff;border-radius:20px;padding:14px;text-align:center;box-shadow:var(--shadow)}
 .stat .v{font-size:22px;font-weight:800}.stat .l{font-size:11px;font-weight:700;color:var(--ink-soft)}
 .log-row{display:flex;justify-content:space-between;background:#fff;border-radius:16px;padding:10px 16px;margin-bottom:8px;font-weight:700;font-size:14px;box-shadow:0 3px 0 rgba(30,42,90,.06)}
+/* export */
+.xopt{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:16px;padding:12px 14px;margin-bottom:8px;font-weight:800;cursor:pointer}
+.xopt input{width:22px;height:22px;accent-color:var(--coral)}
+.xopt .xe{font-size:22px}
+/* modal */
 .modal{position:fixed;inset:0;background:rgba(30,42,90,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 .modal.open{display:flex}
 .sheet{background:#fff;width:100%;max-width:480px;border-radius:30px 30px 0 0;padding:24px 22px 40px;animation:up .25s;max-height:88vh;overflow:auto}
@@ -216,8 +239,7 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
 
   <!-- SETUP -->
   <div class="screen" id="scr-setup">
-    <div class="hero"><h1 class="brand-name">DayJoy</h1><p>Your whole day, one happy place</p></div>
-    <div class="brandbar" id="brandbar"></div>
+    <div class="hero"><h1>DayJoy</h1><p>Your whole day, one happy place</p></div>
     <div class="step"><h3>Step 1 — Create the tables</h3><p>Supabase dashboard → <b>SQL Editor</b> → paste → <b>Run</b>. Once.</p>
       <div class="sqlbox" id="sqlbox"></div>
       <button class="ghostbtn" id="sql-copy" style="width:100%">📋 Copy SQL</button></div>
@@ -237,7 +259,6 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
       <img class="mascot-hero" src="mascot-sun.webp" alt="DayJoy mascot">
       <div class="auth-title">Hello, I'm <span class="brand-name">DayJoy</span>! ☀️</div>
       <div class="auth-sub">Your whole day, one happy place</div>
-      <div class="brandbar" id="brandbar-auth" style="margin:12px 0 0"></div>
     </div>
     <div class="auth-sheet">
       <div class="seg"><button id="seg-in" class="on">Sign in</button><button id="seg-up">Create account</button></div>
@@ -246,7 +267,6 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
       <div class="err" id="auth-err"></div><div class="okmsg" id="auth-ok"></div>
       <button class="bigbtn" id="auth-go">Let's go →</button>
       <div class="auth-perks"><span class="perk">✅ Tasks</span><span class="perk">🔥 Habits</span><span class="perk">📝 Notes</span><span class="perk">⏱️ Focus</span><span class="perk">💛 Journal</span></div>
-      <p style="text-align:center;margin-top:16px"><button class="linkbtn" id="cfg-reset" style="color:var(--ink-soft)">Change Supabase connection</button></p>
     </div>
   </div>
 
@@ -261,17 +281,14 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
         <div class="inner"><div class="pct" id="daypct">0%</div><div class="lbl">DAY DONE</div></div></div>
     </div>
     <div class="topbtns">
-      <button class="ghostbtn" id="btn-brand">🎉 <span class="brand-name">DayJoy</span> ▾</button>
-      <button class="ghostbtn" id="btn-sql">🗄️ DB Setup</button>
-      <button class="ghostbtn" id="btn-backup">⬇️ Backup</button>
+      <button class="ghostbtn" id="btn-export">📤 Export</button>
       <button class="ghostbtn" id="btn-out">Sign out</button>
     </div>
-    <div class="brandbar" id="brandbar2" style="display:none;margin:10px 22px 0"></div>
 
     <div class="view active" id="v-home">
       <div class="section"><div class="section-head"><span class="ico">✅</span><h2>Today's Tasks</h2><button class="more" data-go="tasks">See all →</button></div><div id="home-tasks"></div></div>
       <div class="section"><div class="section-head"><span class="ico">🔥</span><h2>Today's Habits</h2><button class="more" data-go="habits">See all →</button></div><div id="home-habits"></div></div>
-      <div class="section"><div class="section-head"><span class="ico">📅</span><h2>Schedule</h2><button class="more" data-go="schedule">See all →</button></div><div class="chips" id="home-sched"></div></div>
+      <div class="section"><div class="section-head"><span class="ico">📅</span><h2>Today's Schedule</h2><button class="more" data-go="schedule">See all →</button></div><div class="chips" id="home-sched"></div></div>
       <div class="section"><div class="section-head"><span class="ico">⏱️</span><h2>Focus Timer</h2></div>
         <div class="focus"><h3>🍅 Pomodoro</h3>
           <div class="ringwrap"><svg width="150" height="150"><circle class="ring-bg" cx="75" cy="75" r="62"/><circle class="ring-fg" id="home-ring" cx="75" cy="75" r="62"/></svg>
@@ -279,7 +296,7 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
           <button class="bigbtn" data-go="time" style="width:auto">▶ Start Focus</button></div></div>
       <div class="section"><div class="section-head"><span class="ico">📝</span><h2>Notes</h2><button class="more" data-go="notes">See all →</button></div><div class="notes-row" id="home-notes"></div></div>
       <div class="section"><div class="section-head"><span class="ico">💛</span><h2>Journal</h2><button class="more" data-go="journal">Write →</button></div><div class="journal-card" id="home-journal" data-go="journal"></div></div>
-      <div class="footer-note">Made with 💛 by <span class="brand-name">DayJoy</span></div>
+      <div class="footer-note">Made with 💛 by DayJoy</div>
     </div>
 
     <div class="view" id="v-tasks">
@@ -308,7 +325,9 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
 
     <div class="view" id="v-schedule">
       <div class="section"><div class="section-head"><span class="ico">📅</span><h2>Schedule</h2></div>
-        <div class="addcard"><div class="row1"><input id="ev-name" placeholder="Event…"><input id="ev-time" type="time" style="flex:0 0 110px"><button class="addbtn" id="ev-add">+</button></div></div>
+        <div class="datenav"><button id="sch-prev">‹</button><span class="ds" id="sch-label">Today</span><button id="sch-next">›</button></div>
+        <div class="addcard"><div class="row1"><input id="ev-name" placeholder="Event…"><input id="ev-time" type="time" style="flex:0 0 110px"><button class="addbtn" id="ev-add">+</button></div>
+        <div class="row2"><input type="date" id="ev-date" style="flex:1"></div></div>
         <div id="ev-list"></div></div>
     </div>
 
@@ -316,6 +335,7 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
       <div class="section"><div class="section-head"><span class="ico">💛</span><h2>Journal</h2></div>
         <div class="moodtrend" id="moodtrend" style="display:none"><span class="ml">This week</span></div>
         <div class="card" style="margin-bottom:14px"><h3 style="font-size:17px;font-weight:800">How was today?</h3>
+          <div class="promptbar" id="promptbar"><span id="prompt-txt">✨ What made you smile today?</span><button class="ghostbtn" id="prompt-dice" style="padding:6px 14px;font-size:13px">🎲 New prompt</button></div>
           <div class="moods" id="moods"><button class="mood" data-m="😍">😍</button><button class="mood on" data-m="😊">😊</button><button class="mood" data-m="🙂">🙂</button><button class="mood" data-m="😟">😟</button><button class="mood" data-m="😴">😴</button></div>
           <textarea class="jbox" id="j-in" placeholder="Dear diary…"></textarea>
           <button class="bigbtn" id="j-add" style="margin-top:12px">Save Entry ✍️</button></div>
@@ -350,16 +370,36 @@ textarea.jbox{width:100%;border:3px solid var(--ink);border-radius:20px;padding:
 </div>
 
 <div class="modal" id="note-modal"><div class="sheet">
-  <h3 id="nm-title">New note 📝</h3><input id="nm-name" placeholder="Note title…"><textarea id="nm-body" placeholder="Write it down…"></textarea>
-  <div class="row"><button class="ghostbtn" id="nm-del" style="display:none">Delete</button><button class="bigbtn" id="nm-save">Save 💾</button></div>
+  <h3 id="nm-title">New note 📝</h3>
+  <input id="nm-name" placeholder="Note title…"><textarea id="nm-body" placeholder="Write it down…"></textarea>
+  <div style="font-weight:800;font-size:14px;margin-bottom:6px">🎨 Color</div>
+  <div class="colorrow" id="nm-colors"></div>
+  <div class="row"><button class="ghostbtn" id="nm-pin">📌 Pin</button><button class="ghostbtn" id="nm-del" style="display:none">Delete</button></div>
+  <div class="row" style="margin-top:10px"><button class="bigbtn" id="nm-save">Save 💾</button></div>
   <div class="row" style="margin-top:10px"><button class="ghostbtn" id="nm-close" style="flex:1">Close</button></div>
 </div></div>
 
-<div class="modal" id="sql-modal"><div class="sheet">
-  <h3>🗄️ Database setup</h3><p style="font-weight:600;color:var(--ink-soft);font-size:14px;margin-bottom:8px">Run this once in Supabase → SQL Editor:</p>
-  <div class="sqlbox" id="sqlbox2" style="max-height:260px"></div>
-  <div class="row"><button class="bigbtn" id="sql-copy2">📋 Copy SQL</button></div>
-  <div class="row" style="margin-top:10px"><button class="ghostbtn" id="sql-close" style="flex:1">Close</button></div>
+<div class="modal" id="jedit-modal"><div class="sheet">
+  <h3>Edit entry ✏️</h3>
+  <div class="moods" id="jedit-moods"><button class="mood" data-m="😍">😍</button><button class="mood" data-m="😊">😊</button><button class="mood" data-m="🙂">🙂</button><button class="mood" data-m="😟">😟</button><button class="mood" data-m="😴">😴</button></div>
+  <textarea id="jedit-text" style="min-height:140px"></textarea>
+  <div class="row"><button class="bigbtn" id="jedit-save">Save 💾</button></div>
+  <div class="row" style="margin-top:10px"><button class="ghostbtn" id="jedit-close" style="flex:1">Close</button></div>
+</div></div>
+
+<div class="modal" id="export-modal"><div class="sheet">
+  <h3>📤 Export Studio</h3>
+  <p style="font-weight:600;color:var(--ink-soft);font-size:14px;margin-bottom:10px">Pick what to export, pick a style:</p>
+  <div id="xlist">
+    <label class="xopt"><input type="checkbox" data-x="tasks" checked><span class="xe">✅</span> Tasks</label>
+    <label class="xopt"><input type="checkbox" data-x="habits" checked><span class="xe">🔥</span> Habits</label>
+    <label class="xopt"><input type="checkbox" data-x="notes" checked><span class="xe">📝</span> Notes</label>
+    <label class="xopt"><input type="checkbox" data-x="journal" checked><span class="xe">💛</span> Journal</label>
+    <label class="xopt"><input type="checkbox" data-x="sessions" checked><span class="xe">⏱️</span> Focus sessions</label>
+  </div>
+  <div class="seg" style="margin-top:12px"><button id="xf-pdf" class="on">🎨 Designed PDF</button><button id="xf-json">📦 Raw JSON</button></div>
+  <div class="row"><button class="bigbtn" id="x-go">Generate ⬇️</button></div>
+  <div class="row" style="margin-top:10px"><button class="ghostbtn" id="x-close" style="flex:1">Close</button></div>
 </div></div>
 
 <script>
@@ -367,26 +407,17 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const PALETTE=['bg-coral','bg-mint','bg-sky','bg-sun','bg-lilac','bg-peach'];
 const NOTE_BG=['#FFE1DF','#D8F7E8','#DDEEFF','#FFF3D1','#E9E1FF','#FFE8D9'];
+const NOTE_HEX=['#FF7B7B','#35D99A','#4FA8FF','#FFC93C','#A78BFA','#FF9F6B'];
 const EMOJI=['💡','📚','🍳','✈️','🎵','💭','🛒','🏋️'];
 const HABIT_EMOJI=['🔥','💧','📖','🏃','🧘','🎨','💤','🥗','💪','🎯'];
-const BRANDS=['DayJoy','Taskly','OneDay'];
+const PROMPTS=['✨ What made you smile today?','💛 What are you grateful for right now?','🎯 What is one thing you want to finish tomorrow?','🌟 What did you learn about yourself today?','💭 What is on your mind this evening?','🏆 What was your biggest win today?','🌱 What is one small habit you want to keep?','💡 What idea kept popping up today?','🤗 Who made your day better?','🌈 Describe today in three words.'];
 const ENV_URL="__SUPABASE_URL__", ENV_KEY="__SUPABASE_ANON_KEY__";
 const dayISO=d=>d.toISOString().slice(0,10);
 const todayISO=()=>dayISO(new Date());
 const fmtDate=iso=>new Date(iso+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const noEmoji=s=>String(s??'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu,'');
 
-/* ---------- brand ---------- */
-let brand=localStorage.getItem('dayjoy-brand')||'DayJoy';
-function applyBrand(){
-  document.querySelectorAll('.brand-name').forEach(e=>e.textContent=brand);
-  document.title=brand+' — Your whole day, one happy place';
-  ['brandbar','brandbar-auth','brandbar2'].forEach(id=>{const h=$(id);if(!h)return;
-    h.innerHTML=BRANDS.map(b=>`<button class="brandpick${b===brand?' on':''}" data-b="${b}">${b}</button>`).join('');
-    h.querySelectorAll('.brandpick').forEach(x=>x.onclick=()=>{brand=x.dataset.b;localStorage.setItem('dayjoy-brand',brand);applyBrand();});});
-}
-$('btn-brand').onclick=()=>{const b=$('brandbar2');b.style.display=b.style.display==='none'?'flex':'none';};
-
-/* ---------- SQL (full setup incl. v3 migration) ---------- */
+/* ---------- SQL (full setup) ---------- */
 const SQL=`-- DayJoy tables — run ONCE in Supabase > SQL Editor
 create table if not exists dayjoy_tasks (
   id uuid primary key default gen_random_uuid(),
@@ -399,16 +430,19 @@ create table if not exists dayjoy_notes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   title text, body text, color int default 0, emoji int default 0,
+  pinned int default 0, updated_at timestamptz default now(),
   created_at timestamptz default now());
 create table if not exists dayjoy_schedule (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   title text not null, time text not null, color text default 'bg-sky',
+  event_date date default CURRENT_DATE,
   created_at timestamptz default now());
 create table if not exists dayjoy_journal (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   mood text default '😊', text text not null,
+  updated_at timestamptz default now(),
   created_at timestamptz default now());
 create table if not exists dayjoy_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -440,12 +474,8 @@ create policy "Users manage own dayjoy_journal" on dayjoy_journal for all using 
 create policy "Users manage own dayjoy_sessions" on dayjoy_sessions for all using (auth.uid()=user_id) with check (auth.uid()=user_id);
 create policy "Users manage own dayjoy_habits" on dayjoy_habits for all using (auth.uid()=user_id) with check (auth.uid()=user_id);
 create policy "Users manage own dayjoy_habit_logs" on dayjoy_habit_logs for all using (auth.uid()=user_id) with check (auth.uid()=user_id);`;
-$('sqlbox').textContent=SQL; $('sqlbox2').textContent=SQL;
-const copySQL=()=>{navigator.clipboard.writeText(SQL).then(()=>alert('📋 SQL copied! Paste it in Supabase > SQL Editor and press Run.'));};
-$('sql-copy').onclick=copySQL; $('sql-copy2').onclick=copySQL;
-$('btn-sql').onclick=()=>$('sql-modal').classList.add('open');
-$('sql-close').onclick=()=>$('sql-modal').classList.remove('open');
-$('sql-modal').onclick=e=>{if(e.target.id==='sql-modal')$('sql-modal').classList.remove('open');};
+$('sqlbox').textContent=SQL;
+$('sql-copy').onclick=()=>{navigator.clipboard.writeText(SQL).then(()=>alert('📋 SQL copied! Paste it in Supabase > SQL Editor and press Run.'));};
 
 /* ---------- screens ---------- */
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0);}
@@ -457,7 +487,6 @@ let sb=null,user=null;
 let D={tasks:[],notes:[],sched:[],journal:[],sessions:[],habits:[],habitLogs:[]};
 
 async function boot(){
-  applyBrand();
   const envUrl=ENV_URL.startsWith('__')?null:ENV_URL;
   const envKey=ENV_KEY.startsWith('__')?null:ENV_KEY;
   if(envUrl&&envKey)cfg={url:envUrl,key:envKey,via:'vercel-env'};
@@ -476,7 +505,6 @@ $('cfg-save').onclick=()=>{
   if(!u||!k){err('setup-err','Paste both the Project URL and the anon key.');return;}
   err('setup-err','');cfg={url:u,key:k,via:'manual'};localStorage.setItem('dayjoy-cfg',JSON.stringify(cfg));boot();
 };
-$('cfg-reset').onclick=()=>{localStorage.removeItem('dayjoy-cfg');cfg=null;boot();};
 
 /* ---------- auth ---------- */
 let authMode='signin';
@@ -521,25 +549,36 @@ async function enterApp(){renderAuthMode();show('scr-app');head();await loadAll(
 async function loadAll(){
   show('scr-load');
   const uid=user.id;
-  const q=(t,order)=>sb.from(t).select('*').eq('user_id',uid).order(order||'created_at',{ascending:order==='time'?true:false});
   const [tk,nt,sc,jr,ss,hh,hl]=await Promise.all([
     sb.from('dayjoy_tasks').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
-    sb.from('dayjoy_notes').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
-    sb.from('dayjoy_schedule').select('*').eq('user_id',uid).order('time'),
+    sb.from('dayjoy_notes').select('*').eq('user_id',uid).order('pinned',{ascending:false}).order('updated_at',{ascending:false}),
+    sb.from('dayjoy_schedule').select('*').eq('user_id',uid).order('event_date').order('time'),
     sb.from('dayjoy_journal').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
     sb.from('dayjoy_sessions').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(30),
     sb.from('dayjoy_habits').select('*').eq('user_id',uid).order('created_at'),
     sb.from('dayjoy_habit_logs').select('*').eq('user_id',uid).order('log_date',{ascending:false}).limit(500),
   ]);
   const bad=[tk,nt,sc,jr,ss,hh,hl].find(r=>r.error);
-  if(bad){show('scr-app');alert('⚠️ Database error: '+bad.error.message+'\n\nOpen 🗄️ DB Setup and run the SQL once in Supabase.');}
+  if(bad){show('scr-app');alert('⚠️ Database error: '+bad.error.message);}
   D={tasks:tk.data||[],notes:nt.data||[],sched:sc.data||[],journal:jr.data||[],sessions:ss.data||[],habits:hh.data||[],habitLogs:hl.data||[]};
   show('scr-app');
   renderTasks();renderHabits();renderSched();renderNotes();renderJournal();renderStats();renderStreak();drawT();
 }
 const emptyHTML=msg=>`<div class="empty"><img class="emascot" src="mascot-sun.webp" alt=""><br>${msg}</div>`;
 
-/* streak: consecutive days (ending today/yesterday) with a session, habit log, or journal entry */
+/* confetti burst on check */
+function burst(btn){
+  const colors=['#FF7B7B','#FFC93C','#35D99A','#4FA8FF','#A78BFA'];
+  for(let i=0;i<7;i++){
+    const s=document.createElement('span');s.className='burst';
+    const a=(i/7)*Math.PI*2+Math.random()*.5,r=34+Math.random()*22;
+    s.style.setProperty('--bx',Math.cos(a)*r+'px');s.style.setProperty('--by',Math.sin(a)*r+'px');
+    s.style.background=colors[i%colors.length];btn.appendChild(s);
+    setTimeout(()=>s.remove(),600);
+  }
+}
+
+/* streak */
 function calcStreak(){
   const days=new Set();
   D.sessions.forEach(s=>days.add(dayISO(new Date(s.created_at))));
@@ -564,12 +603,10 @@ function dueBadge(x){
   return `<span class="due">📅 ${fmtDate(x.due_date)}</span>`;
 }
 function taskHTML(x){
-  return `<div class="task-row ${x.color}${x.done?' done':''}"><button class="cb" data-tact="t" data-id="${x.id}">${x.done?'✓':''}</button><div class="tt"><span class="t">${esc(x.title)}</span><div class="meta"><span class="cat">${esc(x.category)}</span><span class="pri">${PRI_DOT[x.priority]||'🟡'} ${esc(x.priority||'Medium')}</span>${dueBadge(x)}</div></div><button class="del" data-tact="d" data-id="${x.id}">✕</button></div>`;
+  return `<div class="task-row ${x.color}${x.done?' done':''}"><button class="cb${x.done?' done':''}" data-tact="t" data-id="${x.id}">${x.done?'✓':''}</button><div class="tt"><span class="t">${esc(x.title)}</span><div class="meta"><span class="cat">${esc(x.category)}</span><span class="pri">${PRI_DOT[x.priority]||'🟡'} ${esc(x.priority||'Medium')}</span>${dueBadge(x)}</div></div><button class="del" data-tact="d" data-id="${x.id}">✕</button></div>`;
 }
 function sortedTasks(){
-  const t=[...D.tasks];
-  const rank=x=>x.done?2:0;
-  return t.sort((a,b)=>rank(a)-rank(b)||(a.due_date||'9999').localeCompare(b.due_date||'9999'));
+  return [...D.tasks].sort((a,b)=>((a.done?2:0)-(b.done?2:0))||(a.due_date||'9999').localeCompare(b.due_date||'9999'));
 }
 function renderTasks(){
   const doneN=D.tasks.filter(t=>t.done).length;
@@ -580,8 +617,10 @@ function renderTasks(){
   $('daypct').textContent=pct+'%';
   $('dayring').style.background=`conic-gradient(var(--mint) 0deg, var(--sun) ${pct*1.2}deg, var(--coral) ${pct*2.4}deg, var(--sky) ${pct*3.6}deg, #eee ${pct*3.6}deg)`;
   document.querySelectorAll('[data-tact]').forEach(b=>b.onclick=async e=>{e.stopPropagation();
-    if(b.dataset.tact==='t'){const x=D.tasks.find(t=>t.id===b.dataset.id);await sb.from('dayjoy_tasks').update({done:!x.done}).eq('id',b.dataset.id);}
-    else await sb.from('dayjoy_tasks').delete().eq('id',b.dataset.id);
+    if(b.dataset.tact==='t'){const x=D.tasks.find(t=>t.id===b.dataset.id);
+      if(!x.done)burst(b);
+      await sb.from('dayjoy_tasks').update({done:!x.done}).eq('id',b.dataset.id);
+    }else await sb.from('dayjoy_tasks').delete().eq('id',b.dataset.id);
     loadAll();});
 }
 async function addTask(){
@@ -609,14 +648,15 @@ function habitCard(h){
     const iso=dayISO(d),hit=logs.has(iso),isToday=iso===todayISO();
     return `<div class="dotday"><button class="dotbtn${hit?' hit':''}${isToday?' today':''}" data-h="${h.id}" data-d="${iso}">${hit?'✓':''}</button><span class="dl">${d.toLocaleDateString('en-US',{weekday:'narrow'})}</span></div>`;
   }).join('');
-  const st=habitStreak(h);
-  return `<div class="habit-card"><div class="hh"><span class="he">${esc(h.emoji||'🔥')}</span><span class="ht">${esc(h.title)}</span><span class="streak">🔥 ${st}</span><button class="hdel" data-hdel="${h.id}">✕</button></div><div class="dotstrip">${dots}</div></div>`;
+  return `<div class="habit-card"><div class="hh"><span class="he">${esc(h.emoji||'🔥')}</span><span class="ht">${esc(h.title)}</span><span class="streak">🔥 ${habitStreak(h)}</span><button class="hdel" data-hdel="${h.id}">✕</button></div><div class="dotstrip">${dots}</div></div>`;
 }
 function renderHabits(){
   $('habit-list').innerHTML=D.habits.map(habitCard).join('')||emptyHTML('No habits yet — start one small win! 🌱');
   const t=todayISO();
-  const todays=D.habits.map(h=>({h,done:D.habitLogs.some(l=>l.habit_id===h.id&&l.log_date===t)}));
-  $('home-habits').innerHTML=todays.slice(0,4).map(({h,done})=>`<div class="task-row ${h.color}"><button class="cb" data-h="${h.id}" data-d="${t}">${done?'✓':''}</button><span class="t">${esc(h.emoji||'🔥')} ${esc(h.title)}</span><span class="cat">🔥 ${habitStreak(h)}</span></div>`).join('')||emptyHTML('Tap Habits to build your streaks 🔥');
+  $('home-habits').innerHTML=D.habits.slice(0,4).map(h=>{
+    const done=D.habitLogs.some(l=>l.habit_id===h.id&&l.log_date===t);
+    return `<div class="task-row ${h.color}"><button class="cb${done?' done':''}" data-h="${h.id}" data-d="${t}">${done?'✓':''}</button><span class="t">${esc(h.emoji||'🔥')} ${esc(h.title)}</span><span class="cat">🔥 ${habitStreak(h)}</span></div>`;
+  }).join('')||emptyHTML('Tap Habits to build your streaks 🔥');
   bindHabitButtons();
 }
 function bindHabitButtons(){
@@ -624,7 +664,7 @@ function bindHabitButtons(){
     const hid=b.dataset.h,iso=b.dataset.d;
     const ex=D.habitLogs.find(l=>l.habit_id===hid&&l.log_date===iso);
     if(ex)await sb.from('dayjoy_habit_logs').delete().eq('id',ex.id);
-    else await sb.from('dayjoy_habit_logs').insert({user_id:user.id,habit_id:hid,log_date:iso});
+    else{burst(b);await sb.from('dayjoy_habit_logs').insert({user_id:user.id,habit_id:hid,log_date:iso});}
     loadAll();});
   document.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=async e=>{e.stopPropagation();
     if(confirm('Delete this habit and its history?')){await sb.from('dayjoy_habits').delete().eq('id',b.dataset.hdel);loadAll();}});
@@ -637,61 +677,103 @@ async function addHabit(){
 $('habit-add').onclick=addHabit;
 $('habit-in').onkeydown=e=>{if(e.key==='Enter')addHabit();};
 
-/* ---------- schedule ---------- */
+/* ---------- schedule (per-day) ---------- */
+let schDate=todayISO();
+function schLabel(){
+  const t=todayISO();
+  if(schDate===t)return 'Today';
+  const y=new Date();y.setDate(y.getDate()+1);
+  if(schDate===dayISO(y))return 'Tomorrow';
+  return new Date(schDate+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+function shiftSch(n){const d=new Date(schDate+'T00:00:00');d.setDate(d.getDate()+n);schDate=dayISO(d);renderSched();}
+$('sch-prev').onclick=()=>shiftSch(-1);
+$('sch-next').onclick=()=>shiftSch(1);
 function renderSched(){
-  $('home-sched').innerHTML=D.sched.slice(0,4).map(e=>`<div class="chip ${e.color}"><div class="time">🕐 ${esc(e.time)}</div><div class="name">${esc(e.title)}</div></div>`).join('')||emptyHTML('A free day! Add something fun 🎈');
-  $('ev-list').innerHTML=D.sched.map(e=>`<div class="ev-row"><span class="dot ${e.color}"></span><span class="tm">${esc(e.time)}</span><span class="nm">${esc(e.title)}</span><button class="delx" data-ev="${e.id}">✕</button></div>`).join('')||emptyHTML('Nothing scheduled — bliss 😌');
+  $('sch-label').textContent=schLabel();
+  $('ev-date').value=schDate;
+  const t=todayISO();
+  const todays=D.sched.filter(e=>(e.event_date||t)===t);
+  $('home-sched').innerHTML=todays.slice(0,4).map(e=>`<div class="chip ${e.color}"><div class="time">🕐 ${esc(e.time.slice(0,5))}</div><div class="name">${esc(e.title)}</div></div>`).join('')||emptyHTML('A free day! Add something fun 🎈');
+  const list=D.sched.filter(e=>(e.event_date||t)===schDate);
+  $('ev-list').innerHTML=list.map(e=>`<div class="ev-row"><span class="dot ${e.color}"></span><span class="tm">${esc(e.time.slice(0,5))}</span><span class="nm">${esc(e.title)}</span><button class="delx" data-ev="${e.id}">✕</button></div>`).join('')||emptyHTML(schDate===t?'Nothing today — bliss 😌':'Nothing this day.');
   document.querySelectorAll('[data-ev]').forEach(b=>b.onclick=async()=>{await sb.from('dayjoy_schedule').delete().eq('id',b.dataset.ev);loadAll();});
 }
 async function addEv(){
-  const n=$('ev-name').value.trim(),t=$('ev-time').value;if(!n||!t)return;
-  await sb.from('dayjoy_schedule').insert({user_id:user.id,title:n,time:t,color:PALETTE[D.sched.length%PALETTE.length]});
-  $('ev-name').value='';loadAll();
+  const n=$('ev-name').value.trim(),tm=$('ev-time').value;if(!n||!tm)return;
+  const dt=$('ev-date').value||schDate;
+  await sb.from('dayjoy_schedule').insert({user_id:user.id,title:n,time:tm,color:PALETTE[D.sched.length%PALETTE.length],event_date:dt});
+  $('ev-name').value='';schDate=dt;loadAll();
 }
 $('ev-add').onclick=addEv;
 
 /* ---------- notes ---------- */
-let editNote=null,noteQ='';
+let editNote=null,noteQ='',noteColor=0,notePinned=0;
 $('note-q').oninput=e=>{noteQ=e.target.value.toLowerCase();renderNotes();};
+function paintColorRow(sel){
+  $('nm-colors').innerHTML=NOTE_HEX.map((c,i)=>`<div class="cdot${i===sel?' on':''}" data-c="${i}" style="background:${c}"></div>`).join('');
+  $('nm-colors').querySelectorAll('.cdot').forEach(d=>d.onclick=()=>{noteColor=+d.dataset.c;paintColorRow(noteColor);});
+}
 function noteCard(n,full){
-  return `<div class="${full?'note-full':'note-card'}" style="background:${NOTE_BG[(n.color||0)%6]}" data-note="${n.id}"><div class="e" style="font-size:24px">${EMOJI[(n.emoji||0)%8]}</div><h4>${esc(n.title)}</h4><p>${esc(n.body)}</p></div>`;
+  const pin=n.pinned?'<span class="pinbadge">📌</span>':'';
+  const ed=n.updated_at?`<div class="edited">Edited ${new Date(n.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>`:'';
+  return `<div class="${full?'note-full':'note-card'}" style="background:${NOTE_BG[(n.color||0)%6]}" data-note="${n.id}">${pin}<div class="e" style="font-size:24px">${EMOJI[(n.emoji||0)%8]}</div><h4>${esc(n.title)}</h4><p>${esc(n.body)}</p>${full?ed:''}</div>`;
 }
 function renderNotes(){
   const list=D.notes.filter(n=>(n.title+' '+(n.body||'')).toLowerCase().includes(noteQ));
-  $('home-notes').innerHTML=D.notes.slice(0,3).map(n=>noteCard(n,false)).join('')||emptyHTML('No notes yet ✏️');
+  const pinned=D.notes.filter(n=>n.pinned);
+  $('home-notes').innerHTML=(pinned.length?pinned:D.notes).slice(0,3).map(n=>noteCard(n,false)).join('')||emptyHTML('No notes yet ✏️');
   $('note-grid').innerHTML=list.map(n=>noteCard(n,true)).join('')||emptyHTML(noteQ?'No notes match your search 🔍':'Tap “New Note” to capture your first idea 💡');
   document.querySelectorAll('[data-note]').forEach(c=>c.onclick=()=>openNote(c.dataset.note));
 }
-$('note-new').onclick=()=>{editNote=null;$('nm-title').textContent='New note 📝';$('nm-name').value='';$('nm-body').value='';$('nm-del').style.display='none';$('note-modal').classList.add('open');};
+function renderPinBtn(){$('nm-pin').textContent=notePinned?'📌 Pinned':'📍 Pin';$('nm-pin').style.opacity=notePinned?'1':'.55';}
+$('note-new').onclick=()=>{editNote=null;noteColor=0;notePinned=0;
+  $('nm-title').textContent='New note 📝';$('nm-name').value='';$('nm-body').value='';
+  paintColorRow(0);renderPinBtn();$('nm-del').style.display='none';$('note-modal').classList.add('open');};
 function openNote(id){const n=D.notes.find(x=>x.id===id);if(!n)return;editNote=id;
-  $('nm-title').textContent='Edit note ✏️';$('nm-name').value=n.title||'';$('nm-body').value=n.body||'';$('nm-del').style.display='block';$('note-modal').classList.add('open');}
+  noteColor=n.color||0;notePinned=n.pinned||0;
+  $('nm-title').textContent='Edit note ✏️';$('nm-name').value=n.title||'';$('nm-body').value=n.body||'';
+  paintColorRow(noteColor);renderPinBtn();$('nm-del').style.display='block';$('note-modal').classList.add('open');}
 $('nm-close').onclick=()=>$('note-modal').classList.remove('open');
 $('note-modal').onclick=e=>{if(e.target.id==='note-modal')$('note-modal').classList.remove('open');};
+$('nm-pin').onclick=()=>{notePinned=notePinned?0:1;renderPinBtn();};
 $('nm-save').onclick=async()=>{
   const t=$('nm-name').value.trim()||'Untitled',b=$('nm-body').value.trim();
-  if(editNote)await sb.from('dayjoy_notes').update({title:t,body:b}).eq('id',editNote);
-  else await sb.from('dayjoy_notes').insert({user_id:user.id,title:t,body:b,color:D.notes.length%6,emoji:Math.floor(Math.random()*8)});
+  if(editNote)await sb.from('dayjoy_notes').update({title:t,body:b,color:noteColor,pinned:notePinned,updated_at:new Date().toISOString()}).eq('id',editNote);
+  else await sb.from('dayjoy_notes').insert({user_id:user.id,title:t,body:b,color:noteColor,emoji:Math.floor(Math.random()*8),pinned:notePinned});
   $('note-modal').classList.remove('open');loadAll();
 };
 $('nm-del').onclick=async()=>{if(editNote){await sb.from('dayjoy_notes').delete().eq('id',editNote);$('note-modal').classList.remove('open');loadAll();}};
 
 /* ---------- journal ---------- */
-let curMood='😊';
-document.querySelectorAll('.mood').forEach(m=>m.onclick=()=>{curMood=m.dataset.m;document.querySelectorAll('.mood').forEach(x=>x.classList.toggle('on',x===m));});
+let curMood='😊',editJ=null,editJMood='😊';
+document.querySelectorAll('#moods .mood').forEach(m=>m.onclick=()=>{curMood=m.dataset.m;document.querySelectorAll('#moods .mood').forEach(x=>x.classList.toggle('on',x===m));});
+document.querySelectorAll('#jedit-moods .mood').forEach(m=>m.onclick=()=>{editJMood=m.dataset.m;document.querySelectorAll('#jedit-moods .mood').forEach(x=>x.classList.toggle('on',x===m));});
+function newPrompt(){$('prompt-txt').textContent=PROMPTS[Math.floor(Math.random()*PROMPTS.length)];}
+$('prompt-dice').onclick=newPrompt;
+function wordCount(t){return t.trim()?t.trim().split(/\s+/).length:0;}
 function renderJournal(){
-  $('j-list').innerHTML=D.journal.map(j=>`<div class="j-entry"><div class="dh"><span class="dt">${new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span class="md">${esc(j.mood)}</span></div><p>${esc(j.text)}</p><button class="delj" data-j="${j.id}">Delete</button></div>`).join('')||emptyHTML('Your story starts here ✍️');
+  $('j-list').innerHTML=D.journal.map(j=>`<div class="j-entry"><div class="dh"><span class="dt">${new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}${j.updated_at&&j.updated_at!==j.created_at?' · edited':''}</span><span class="md">${esc(j.mood)}</span></div><p>${esc(j.text)}</p><div class="jfoot"><button class="editj" data-je="${j.id}">Edit</button><button class="delj" data-j="${j.id}">Delete</button><span class="wc">${wordCount(j.text)} words</span></div></div>`).join('')||emptyHTML('Your story starts here ✍️');
   document.querySelectorAll('[data-j]').forEach(b=>b.onclick=async()=>{await sb.from('dayjoy_journal').delete().eq('id',b.dataset.j);loadAll();});
+  document.querySelectorAll('[data-je]').forEach(b=>b.onclick=()=>{const j=D.journal.find(x=>x.id===b.dataset.je);if(!j)return;editJ=j.id;editJMood=j.mood||'😊';
+    $('jedit-text').value=j.text;document.querySelectorAll('#jedit-moods .mood').forEach(x=>x.classList.toggle('on',x.dataset.m===editJMood));$('jedit-modal').classList.add('open');});
   const last=D.journal[0],td=new Date().toDateString();
   $('home-journal').innerHTML=last?`<h4>${esc(last.mood)} ${new Date(last.created_at).toDateString()===td?'Today':new Date(last.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</h4><p>${esc(last.text.slice(0,120))}${last.text.length>120?'…':''}</p>`:'<h4>💛 Start journaling</h4><p>Tap to write your first entry…</p>';
-  const week=D.journal.slice(0,7).reverse();
-  const mt=$('moodtrend');
+  const week=D.journal.slice(0,7).reverse(),mt=$('moodtrend');
   if(week.length){mt.style.display='flex';mt.innerHTML='<span class="ml">This week</span>'+week.map(j=>`<span>${esc(j.mood)}</span>`).join('');}
   else mt.style.display='none';
 }
 $('j-add').onclick=async()=>{
   const t=$('j-in').value.trim();if(!t)return;
   await sb.from('dayjoy_journal').insert({user_id:user.id,mood:curMood,text:t});
-  $('j-in').value='';loadAll();
+  $('j-in').value='';newPrompt();loadAll();
+};
+$('jedit-close').onclick=()=>$('jedit-modal').classList.remove('open');
+$('jedit-modal').onclick=e=>{if(e.target.id==='jedit-modal')$('jedit-modal').classList.remove('open');};
+$('jedit-save').onclick=async()=>{
+  const t=$('jedit-text').value.trim();if(!t||!editJ)return;
+  await sb.from('dayjoy_journal').update({text:t,mood:editJMood,updated_at:new Date().toISOString()}).eq('id',editJ);
+  $('jedit-modal').classList.remove('open');loadAll();
 };
 
 /* ---------- timer ---------- */
@@ -744,17 +826,107 @@ function renderStats(){
   }).join('');
 }
 
-/* ---------- backup ---------- */
-$('btn-backup').onclick=()=>{
-  const data={brand,exportedAt:new Date().toISOString(),...D};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='dayjoy-backup-'+todayISO()+'.json';a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+/* ---------- export studio ---------- */
+let xFormat='pdf';
+$('xf-pdf').onclick=()=>{xFormat='pdf';$('xf-pdf').classList.add('on');$('xf-json').classList.remove('on');};
+$('xf-json').onclick=()=>{xFormat='json';$('xf-json').classList.add('on');$('xf-pdf').classList.remove('on');};
+$('btn-export').onclick=()=>$('export-modal').classList.add('open');
+$('x-close').onclick=()=>$('export-modal').classList.remove('open');
+$('export-modal').onclick=e=>{if(e.target.id==='export-modal')$('export-modal').classList.remove('open');};
+function xChecked(){return [...document.querySelectorAll('#xlist input:checked')].map(i=>i.dataset.x);}
+$('x-go').onclick=async()=>{
+  const sel=xChecked();
+  if(!sel.length){alert('Pick at least one section 🙂');return;}
+  $('x-go').disabled=true;$('x-go').textContent='Working… 🎨';
+  try{
+    if(xFormat==='json'){
+      const data={app:'DayJoy',exportedAt:new Date().toISOString(),user:user.email};
+      sel.forEach(k=>data[k]=D[k==='sessions'?'sessions':k]);
+      dl('dayjoy-export-'+todayISO()+'.json',new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+    }else await exportPDF(sel);
+  }catch(e){alert('Export failed: '+(e.message||e));}
+  $('x-go').disabled=false;$('x-go').textContent='Generate ⬇️';
+  $('export-modal').classList.remove('open');
 };
+function dl(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
+async function mascotDataURL(){
+  try{const r=await fetch('mascot-sun.webp');const b=await r.blob();
+    return await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b);});
+  }catch(e){return null;}
+}
+async function exportPDF(sel){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,M=16;let y=0;
+  const C={coral:[255,123,123],ink:[30,42,90],soft:[91,100,128],sun:[255,201,60],mint:[53,217,154],sky:[79,168,255],lilac:[167,139,250]};
+  const need=h=>{if(y+h>280){doc.addPage();y=0;}};
+  // cover header
+  doc.setFillColor(...C.coral);doc.roundedRect(0,0,W,52,0,0,'F');
+  const mascot=await mascotDataURL();
+  if(mascot){try{doc.addImage(mascot,'WEBP',M,10,32,32);}catch(e){}}
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(30);
+  doc.text('DayJoy',mascot?M+38:M,26);
+  doc.setFontSize(12);doc.setFont('helvetica','normal');
+  doc.text('Your whole day, one happy place',mascot?M+38:M,35);
+  doc.setFontSize(10);doc.text(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),mascot?M+38:M,42);
+  y=60;
+  const bar=(title,color)=>{
+    need(16);doc.setFillColor(...color);doc.roundedRect(M,y,W-2*M,11,3,3,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+    doc.text(noEmoji(title),M+5,y+7.5);y+=16;
+  };
+  const lines=(txt,x,w,size=10.5,color=C.ink,bold=false)=>{
+    doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...color);
+    doc.splitTextToSize(noEmoji(txt),w).forEach(l=>{need(6);doc.text(l,x,y);y+=5.2;});
+  };
+  if(sel.includes('tasks')&&D.tasks.length){
+    bar('✅ Tasks',C.coral);
+    D.tasks.forEach(t=>{need(12);
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...C.ink);
+      const mark=t.done?'[x]':'[ ]';
+      doc.splitTextToSize(noEmoji(mark+' '+t.title),W-2*M-6).forEach(l=>{need(6);doc.text(l,M+3,y);y+=5.5;});
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...C.soft);
+      const meta=[t.category,t.priority,t.due_date?('due '+t.due_date):null].filter(Boolean).join('  ·  ');
+      if(meta){need(5);doc.text(noEmoji(meta),M+8,y);y+=5;} y+=1.5;});
+    y+=4;
+  }
+  if(sel.includes('habits')&&D.habits.length){
+    bar('🔥 Habits',C.sun);
+    D.habits.forEach(h=>{need(10);lines(`${noEmoji(h.emoji||'')} ${h.title}  —  ${habitStreak(h)} day streak`,M+3,W-2*M-6,11);y+=2;});
+    y+=4;
+  }
+  if(sel.includes('notes')&&D.notes.length){
+    bar('📝 Notes',C.sky);
+    D.notes.forEach(n=>{need(14);
+      doc.setFillColor(245,247,255);const y0=y;
+      lines(n.title||'Untitled',M+5,W-2*M-12,11.5,C.ink,true);
+      lines(n.body||'',M+5,W-2*M-12,10.5);y+=3;
+      doc.roundedRect(M,y0,W-2*M,y-y0+2,2,2);y+=6;});
+    y+=2;
+  }
+  if(sel.includes('journal')&&D.journal.length){
+    bar('💛 Journal',C.lilac);
+    D.journal.forEach(j=>{need(16);
+      doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(...C.soft);
+      doc.text(new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),M+3,y);y+=6;
+      lines(j.text,M+3,W-2*M-6,10.5);y+=4;});
+  }
+  if(sel.includes('sessions')&&D.sessions.length){
+    bar('⏱️ Focus sessions',C.mint);
+    const total=D.sessions.reduce((a,s)=>a+(s.minutes||0),0);
+    lines(`Total focused: ${total} minutes across ${D.sessions.length} sessions`,M+3,W-2*M-6,11);y+=3;
+    D.sessions.slice(0,20).forEach(s=>{need(6);
+      doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...C.ink);
+      doc.text(`${s.minutes} min — ${new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}`,M+3,y);y+=5.5;});
+  }
+  // footer
+  doc.setFontSize(9);doc.setTextColor(...C.soft);
+  doc.text('Made with love by DayJoy',M,292);
+  doc.save('dayjoy-export-'+todayISO()+'.pdf');
+}
 
 /* ---------- init ---------- */
-renderAuthMode();boot();
+renderAuthMode();newPrompt();boot();
 </script>
 </body>
 </html>
